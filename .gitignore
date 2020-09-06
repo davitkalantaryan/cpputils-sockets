@@ -30,3 +30,38 @@
 *.exe
 *.out
 *.app
+
+# Above lines created by github.
+# Below lines added manually
+
+*.[oa]
+*~
+*.obj
+*.pro.user*
+.tmp/*
+
+*.zip
+
+sys
+
+prj/*/*/*
+!prj/*/*_vs/*.props
+!prj/*/*_vs/*.sln
+!prj/*/*_vs/*.vcxproj
+!prj/*/*_vs/*.vcxproj.filters
+!prj/tests/*_vs/*.vcxproj.user
+!prj/*/*_qt/*.pro
+!prj/*/*_qt/*.pri
+
+# below case is handled by `!prj/tests/*_vs/*.vcxproj.use`
+# but in general if we have binary, that for debugging 
+# needs extra info in '*.vcxproj.user' file, then better to have 
+# this filein the git
+#!prj/tests/device_pnp_handler_test_vs/device_pnp_handler_test.vcxproj.user
+
+workspaces/*/*
+!workspaces/*_vs/*.sln
+!workspaces/*_vs/*.vcxproj
+!workspaces/*_vs/*.vcxproj.filters
+!workspaces/*_qt/*.pro
+!workspaces/*_qt/*.pri
