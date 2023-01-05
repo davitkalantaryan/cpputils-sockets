@@ -162,12 +162,14 @@ void socket::TcpServer::RunServer(int a_lnTimeout, TypeAccept a_fpAddClient, voi
 void socket::TcpServer::StopServer(void)
 {
     int nCurrentThreadId(static_cast<int>(gettidNew()));
-    if((m_nWorkStatus != WORK_STATUSES::RUN)||(m_nWorkStatus != WORK_STATUSES::INITED2)){return;}
+    if((m_nWorkStatus != WORK_STATUSES::RUN)&&(m_nWorkStatus != WORK_STATUSES::INITED2)){return;}
 	
 	if(nCurrentThreadId!=m_nServerThreadId){
 		m_nWorkStatus = WORK_STATUSES::TRYING_TO_STOP;
 		closeC();
-#ifndef _WIN32
+#ifdef _WIN32
+        QueueUserAPC();
+#else
         pthread_kill(m_serverThread,SIGPIPE);
 #endif
         while((m_nWorkStatus != WORK_STATUSES::INITED2) && (m_nWorkStatus== WORK_STATUSES::TRYING_TO_STOP)){SWITCH_SCHEDULING(1);}
