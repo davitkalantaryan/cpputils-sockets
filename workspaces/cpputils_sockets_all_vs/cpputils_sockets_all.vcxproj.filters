@@ -27,16 +27,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\core\common_io_base.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\core\common_io_socket_base.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\core\common_io_socket_tcp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\core\common_io_socket_tcpserver.cpp">
+    <ClCompile Include="..\..\src\utils\entr_cpputils_sockets_all.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
