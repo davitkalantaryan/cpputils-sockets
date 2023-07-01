@@ -19,7 +19,6 @@
 #pragma warning (pop)
 #endif
 
-struct sockaddr_in;
 
 namespace cpputils { namespace sockets{
 
@@ -28,7 +27,7 @@ class CPPUTILS_DLL_PRIVATE tcp_server_p;
 class CSOCKETS_EXPORT tcp_server
 {
 public:
-	typedef ::std::function<void(tcp_socket&,const sockaddr_in*)>	TypeConnectClbk;
+	typedef ::std::function<void(tcp_socket&,const sockaddr_in* CPPUTILS_ARG_NN)>	TypeConnectClbk;
 	static const TypeConnectClbk	s_defClbk;
 
 public:

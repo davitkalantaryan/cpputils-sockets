@@ -235,6 +235,21 @@ int tcp_socket::waitForReadData(int a_timeoutMs)const
 }
 
 
+/*--------------------------------------------------------------------------------------------------------------*/
+
+CSOCKETS_EXPORT const char* GetIPV4Address(const sockaddr_in* CPPUTILS_ARG_NN a_addr)
+{
+#ifdef _MSC_VER
+#pragma warning (push)
+#pragma warning (disable:4996)
+#endif
+	return ::inet_ntoa(a_addr->sin_addr);
+#ifdef _MSC_VER
+#pragma warning (pop)
+#endif
+}
+
+
 }}  //  namespace cpputils { namespace sockets{
 
 

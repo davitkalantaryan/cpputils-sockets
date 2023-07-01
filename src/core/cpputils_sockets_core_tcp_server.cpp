@@ -246,7 +246,7 @@ void tcp_server_p::ServerAccept(int a_lnTimeoutMs, struct sockaddr_in* a_bufForR
 
 	tcp_socket aIncommingSocket(&clientSocket);
 	this->clbk(aIncommingSocket, a_bufForRemAddress);
-
+	aIncommingSocket.Close();
 }
 
 

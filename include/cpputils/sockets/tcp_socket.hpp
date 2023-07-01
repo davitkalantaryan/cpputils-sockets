@@ -11,6 +11,8 @@
 #include <cpputils/sockets/export_symbols.h>
 #include <stddef.h>
 
+struct sockaddr_in;
+
 namespace cpputils { namespace sockets{
 
 struct SysSocket;
@@ -41,5 +43,9 @@ public:
 protected:
 	tcp_socket_p* m_sock_data_p;
 };
+
+
+CSOCKETS_EXPORT const char* GetIPV4Address(const sockaddr_in* CPPUTILS_ARG_NN a_addr);
+
 
 }}  //  namespace cpputils { namespace sockets{
