@@ -12,12 +12,25 @@
 
 int main(void)
 {
+	char vcBuffer[128];
 	cpputils::sockets::tcp_socket aSocket;
 	if (aSocket.Connect("localhost", 9030, 1000)) {
 		fprintf(stderr, "unable to connect\n");
 		return 1;
 	}
-	//aServer.StoptServer();
+
+	const int nRcv = aSocket.receive(vcBuffer,4);
+	fprintf(stdout, "nRcv = %d\n",nRcv);
+
+	if (nRcv > 0) {
+		vcBuffer[nRcv] = 0;
+		fprintf(stdout, "dataReceived = \"%s\"\n", vcBuffer);
+	}
+	fflush(stdout);
+
+	aSocket.Send("pong",4);
+
+	// aSocket.Close(); // no need for this, because destructor will do this
 
 	return 0;;
 }

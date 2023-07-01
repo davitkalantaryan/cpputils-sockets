@@ -15,14 +15,23 @@ int main(void)
 {
 	::cpputils::sockets::tcp_server aServer;
 	const int nRet = aServer.StartServer(9030, [](::cpputils::sockets::tcp_socket& a_sock, const sockaddr_in* CPPUTILS_ARG_NN a_addr) {
-		::cpputils::sockets::tcp_socket aNewSock;
+		char vcBuffer[128];
+		::cpputils::sockets::tcp_socket aSocket;
 		const char* cpcHostName = ::cpputils::sockets::GetIPV4Address(a_addr);
 		if (cpcHostName) {
 			fprintf(stdout, "Client host %s!\n", cpcHostName);
 			fflush(stdout);
 		}
-		aNewSock.ReplaceWithOtherSocket(&a_sock); // after this one can keep aNewSock permanently
-		aNewSock.Send("Hi",3);
+		aSocket.ReplaceWithOtherSocket(&a_sock); // after this one can keep aNewSock permanently
+		aSocket.Send("ping",4);
+		const int nRcv = aSocket.receive(vcBuffer, 4);
+		fprintf(stdout, "nRcv = %d\n", nRcv);
+
+		if (nRcv > 0) {
+			vcBuffer[nRcv] = 0;
+			fprintf(stdout, "dataReceived = \"%s\"\n", vcBuffer);
+		}
+		fflush(stdout);
 		// aNewSock.Close(); // no need for this, because destructor will do this
 	});
 	if (nRet) {

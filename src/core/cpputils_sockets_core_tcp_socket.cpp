@@ -95,9 +95,17 @@ int tcp_socket::Connect(const char* CPPUTILS_ARG_NN a_svrName, int a_port, int a
 #endif
 	if ((ha = inet_addr(a_svrName)) == INADDR_NONE) {
 		struct hostent* hostent_ptr = gethostbyname(a_svrName);  // making DNS querry
-		if (!hostent_ptr) { return -1;}
+		if (!hostent_ptr) {
+			closesocketn(m_sock_data_p->sock);
+			m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
+			return -1;
+		}
 		a_svrName = inet_ntoa(*(struct in_addr*)hostent_ptr->h_addr_list[0]);
-		if ((ha = inet_addr(a_svrName)) == INADDR_NONE) { return -1; }
+		if ((ha = inet_addr(a_svrName)) == INADDR_NONE) {
+			closesocketn(m_sock_data_p->sock);
+			m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
+			return -1;
+		}
 	}
 #ifdef _MSC_VER
 #pragma warning (pop)
@@ -115,12 +123,14 @@ int tcp_socket::Connect(const char* CPPUTILS_ARG_NN a_svrName, int a_port, int a
 		if (!SOCKET_INPROGRESS_INLINE()) { return -1; }  // connect error
 		rtn = WaitForDataOnSocketInline(m_sock_data_p->sock, a_connectionTimeoutMs, DeskType::write);
 		if (rtn > 0) {
+			MakeSocketBlocking();
 			return 0;
 		}
 	}  //  if (rtn) {
 
+	closesocketn(m_sock_data_p->sock);
+	m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
 	return -1;  // most probably timeout
-
 }
 
 
