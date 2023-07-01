@@ -299,6 +299,9 @@
     <None Include="..\..\.gitignore" />
     <None Include="..\..\.gitmodules" />
     <None Include="..\..\LICENSE" />
+    <None Include="..\..\prj\common\common_qt\flags_common.pri" />
+    <None Include="..\..\prj\common\common_qt\resolve_common.pri" />
+    <None Include="..\..\prj\common\common_qt\sys_common.pri" />
     <None Include="..\..\README.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

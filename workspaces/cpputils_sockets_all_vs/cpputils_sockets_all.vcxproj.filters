@@ -28,6 +28,15 @@
     <Filter Include="files">
       <UniqueIdentifier>{467feddf-3304-4206-b376-a8b1664ed924}</UniqueIdentifier>
     </Filter>
+    <Filter Include="files\prj">
+      <UniqueIdentifier>{e4e3791e-4df0-4031-95bd-16bac08a79e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="files\prj\common">
+      <UniqueIdentifier>{a63ea37a-4fd2-46dd-8d28-dbfe03430dab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="files\prj\common\common_qt">
+      <UniqueIdentifier>{8b8f59b8-37e4-4a09-ab0e-6e34889e7fd0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\utils\entr_cpputils_sockets_all.cpp">
@@ -72,6 +81,15 @@
     </None>
     <None Include="..\..\README.md">
       <Filter>files</Filter>
+    </None>
+    <None Include="..\..\prj\common\common_qt\flags_common.pri">
+      <Filter>files\prj\common\common_qt</Filter>
+    </None>
+    <None Include="..\..\prj\common\common_qt\resolve_common.pri">
+      <Filter>files\prj\common\common_qt</Filter>
+    </None>
+    <None Include="..\..\prj\common\common_qt\sys_common.pri">
+      <Filter>files\prj\common\common_qt</Filter>
     </None>
   </ItemGroup>
 </Project>
