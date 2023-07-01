@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\include">
+      <UniqueIdentifier>{36c4436e-2de7-408d-9fe2-92c33cd79e56}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\include\cpputils">
+      <UniqueIdentifier>{61747463-d693-4b77-878f-dea889be0ce4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\include\cpputils\sockets">
+      <UniqueIdentifier>{7d7f173d-339e-4e7e-8e74-97533c56b674}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\src">
+      <UniqueIdentifier>{67f15405-1b95-4686-af98-f4616a600cb6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\src\core">
+      <UniqueIdentifier>{ee285ebe-574e-49c5-a531-79f77541fe73}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\src\tests\main_tcp_server_test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\core\cpputils_sockets_core_tcp_socket.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\core\cpputils_sockets_core_tcp_server.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\include\cpputils\sockets\export_symbols.h">
+      <Filter>Header Files\include\cpputils\sockets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\cpputils\sockets\tcp_socket.hpp">
+      <Filter>Header Files\include\cpputils\sockets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\core\cpputils_sockets_core_tcp_socket_p.hpp">
+      <Filter>Header Files\src\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\cpputils\sockets\tcp_server.hpp">
+      <Filter>Header Files\include\cpputils\sockets</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
