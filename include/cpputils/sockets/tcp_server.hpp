@@ -10,7 +10,16 @@
 
 #include <cpputils/sockets/export_symbols.h>
 #include <cpputils/sockets/tcp_socket.hpp>
+#ifdef _MSC_VER
+#pragma warning (push)
+#pragma warning (disable:4365)
+#endif
 #include <functional>
+#ifdef _MSC_VER
+#pragma warning (pop)
+#endif
+
+struct sockaddr_in;
 
 namespace cpputils { namespace sockets{
 
@@ -19,7 +28,8 @@ class CPPUTILS_DLL_PRIVATE tcp_server_p;
 class CSOCKETS_EXPORT tcp_server
 {
 public:
-	typedef ::std::function<void(tcp_socket*)>	TypeConnectClbk;
+	typedef ::std::function<void(tcp_socket&,const sockaddr_in*)>	TypeConnectClbk;
+	static const TypeConnectClbk	s_defClbk;
 
 public:
 	virtual ~tcp_server();
@@ -31,9 +41,11 @@ public:
 	tcp_server& operator=(const tcp_server&) = delete;
 	void ReplaceWithOtherServer(tcp_server* CPPUTILS_ARG_NN a_pMM) noexcept;
 
-	void StartServer(
-						const TypeConnectClbk& a_clbk, int a_nPort,
-						bool a_bOnlyLocalHost=false);
+	// server will start in the different thread
+	int StartServer(
+						int a_nPort, const TypeConnectClbk& a_clbk= s_defClbk, int a_lnTimeoutMs = 1000,
+						bool a_bOnlyLocalHost=false, bool a_bReuse=true);
+	void StoptServer();  // stops and waits to stop
 
 protected:
 	tcp_server_p* m_serv_data_p;

@@ -27,6 +27,14 @@ tcp_socket::tcp_socket()
 }
 
 
+tcp_socket::tcp_socket(const SysSocket* a_createdSocket)
+	:
+	m_sock_data_p(new tcp_socket_p())
+{
+	m_sock_data_p->sock = a_createdSocket->sock;
+}
+
+
 tcp_socket::tcp_socket(tcp_socket&& a_mM) noexcept
 	:
 	m_sock_data_p(a_mM.m_sock_data_p)
@@ -60,107 +68,6 @@ static bool SOCKET_INPROGRESS_INLINE(void) {
 	const int cnErrno = errno;
 	return SOCKET_INPROGRESS(cnErrno);
 #endif
-}
-
-
-enum class DeskType {
-	read,
-	write,
-	err,
-	read_and_write,
-	read_and_err,
-	write_and_err,
-	all
-};
-
-// 1,2,3 => data, 0 => timeout, -1 => error, socket should be closed
-static inline int WaitForDataOnSocketInline(socket_t a_sock, int a_timeoutMs, const DeskType& a_desc) {
-	fd_set *pRdFds= nullptr, *pWrFds= nullptr,*pErFds= nullptr;
-	fd_set rdfds, wrfds, errfds;
-	struct timeval  aTimeout;
-	struct timeval* pTimeout;
-
-	const int maxsd = static_cast<int>(a_sock) + 1;
-
-	if (a_timeoutMs >= 0) {
-		aTimeout.tv_sec = a_timeoutMs / 1000L;
-		aTimeout.tv_usec = (a_timeoutMs % 1000L) * 1000L;
-		pTimeout = &aTimeout;
-	}
-	else { pTimeout = nullptr; }
-
-	switch (a_desc) {
-	case DeskType::read:
-		FD_ZERO(&rdfds);
-		FD_SET(a_sock, &rdfds);
-		pRdFds = &rdfds;
-		break;
-	case DeskType::write:
-		FD_ZERO(&wrfds);
-		FD_SET(a_sock, &wrfds);
-		pWrFds = &wrfds;
-		break;
-	case DeskType::err:
-		FD_ZERO(&errfds);
-		FD_SET(a_sock, &errfds);
-		pErFds = &errfds;
-		break;
-	case DeskType::read_and_write:
-		FD_ZERO(&rdfds);
-		FD_SET(a_sock, &rdfds);
-		pRdFds = &rdfds;
-		FD_ZERO(&wrfds);
-		FD_SET(a_sock, &wrfds);
-		pWrFds = &wrfds;
-		break;
-	case DeskType::read_and_err:
-		FD_ZERO(&rdfds);
-		FD_SET(a_sock, &rdfds);
-		pRdFds = &rdfds;
-		FD_ZERO(&errfds);
-		FD_SET(a_sock, &errfds);
-		pErFds = &errfds;
-		break;
-	case DeskType::write_and_err:
-		FD_ZERO(&wrfds);
-		FD_SET(a_sock, &wrfds);
-		pWrFds = &wrfds;
-		FD_ZERO(&errfds);
-		FD_SET(a_sock, &errfds);
-		pErFds = &errfds;
-		break;
-	default:
-		FD_ZERO(&rdfds);
-		FD_SET(a_sock, &rdfds);
-		pRdFds = &rdfds;
-		FD_ZERO(&wrfds);
-		FD_SET(a_sock, &wrfds);
-		pWrFds = &wrfds;
-		FD_ZERO(&errfds);
-		FD_SET(a_sock, &errfds);
-		pErFds = &errfds;
-		break;
-	}  //  switch (a_desc) {
-
-	const int rtn = ::select(maxsd, pRdFds, pWrFds, pErFds, pTimeout);
-
-	switch (rtn) {
-	case 0:	/* time out */
-		return 0;
-	case SOCKET_ERROR:
-		if (errno == EINTR) {/*interrupted by signal*/return -1; }  // interrupt
-		return -1;  // select error
-	default:
-		break;
-	}  //  switch (rtn){
-
-	int nCount = 0;
-	if (pRdFds && FD_ISSET(a_sock, pRdFds)) { ++nCount; }
-	if (pWrFds && FD_ISSET(a_sock, pWrFds)) { ++nCount; }
-	if (pErFds && FD_ISSET(a_sock, pErFds)) { ++nCount; }
-
-	// if nCount == 0 , we have fatal error, else we have data
-	return nCount? nCount:(-1);
 }
 
 

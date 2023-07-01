@@ -13,6 +13,7 @@
 
 namespace cpputils { namespace sockets{
 
+struct SysSocket;
 class CPPUTILS_DLL_PRIVATE tcp_socket_p;
 
 class CSOCKETS_EXPORT tcp_socket
@@ -20,6 +21,7 @@ class CSOCKETS_EXPORT tcp_socket
 public:
 	virtual ~tcp_socket();
 	tcp_socket();
+	tcp_socket(const SysSocket* a_createdSocket);
 	tcp_socket(tcp_socket&& a_mM) noexcept;
 	tcp_socket(const tcp_socket&)=delete;
 	

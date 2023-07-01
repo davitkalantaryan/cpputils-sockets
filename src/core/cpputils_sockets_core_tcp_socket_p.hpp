@@ -9,45 +9,11 @@
 #pragma once
 
 #include <cpputils/sockets/tcp_socket.hpp>
-#include <cinternal/disable_compiler_warnings.h>
-#ifdef _WIN32
-#include <WinSock2.h>
-#include <WS2tcpip.h>
-#include <Windows.h>
-#define CPPUTILS_SOCKS_CLOSE_SOCK			static_cast<SOCKET>(-1)
-#define closesocketn						closesocket
-#define SWITCH_SCHEDULING(_t_)				SleepEx((_t_),TRUE)
-#define CHECK_FOR_SOCK_INVALID(_a_socket_)	((_a_socket_) == INVALID_SOCKET)
-#define CHECK_FOR_SOCK_ERROR(_a_return_)	((_a_return_) == SOCKET_ERROR)
-#else
-#define CPPUTILS_SOCKS_CLOSE_SOCK			(-1)
-#define closesocketn						close
-#define SWITCH_SCHEDULING(_t_)				usleep(900*(_t_))
-#define CHECK_FOR_SOCK_INVALID(_a_socket_)	((_a_socket_) < 0)
-#define CHECK_FOR_SOCK_ERROR(_a_return_)	((_a_return_) < 0)
-// SOCKET_INPROGRESS
-#if defined(EALREADY) && defined(EAGAIN)
-#define	SOCKET_INPROGRESS(e)	(e == EINPROGRESS || e == EALREADY || e == EAGAIN)
-#elif defined( EALREADY)
-#define	SOCKET_INPROGRESS(e)	(e == EINPROGRESS || e == EALREADY)
-#elif defined(EAGAIN)
-#define	SOCKET_INPROGRESS(e)	(e == EINPROGRESS || e == EAGAIN)
-#else
-#define	SOCKET_INPROGRESS(e)	(e == EINPROGRESS)
-#endif
-#endif
+#include <cpputils/sockets/socket_data.hpp>
+
 
 namespace cpputils { namespace sockets{
 
-#ifdef _WIN32
-typedef SOCKET		socket_t;
-typedef int			sndrcv_inp_cnt;
-typedef int			sndrcv_ret_cnt;
-#else
-typedef int			socket_t;
-typedef size_t		sndrcv_inp_cnt;
-typedef ssize_t		sndrcv_ret_cnt;
-#endif
 
 class CPPUTILS_DLL_PRIVATE tcp_socket_p
 {
@@ -67,6 +33,108 @@ static inline void MakeSocketNonBlockingInline(socket_t a_sock){
 		fcntl(a_sock, F_SETFL, status);
 	}
 #endif
+}
+
+
+enum class DeskType {
+	read,
+	write,
+	err,
+	read_and_write,
+	read_and_err,
+	write_and_err,
+	all
+};
+
+
+// 1,2,3 => data, 0 => timeout, -1 => error, socket should be closed
+static inline int WaitForDataOnSocketInline(socket_t a_sock, int a_timeoutMs, const DeskType& a_desc) {
+	fd_set* pRdFds = nullptr, * pWrFds = nullptr, * pErFds = nullptr;
+	fd_set rdfds, wrfds, errfds;
+	struct timeval  aTimeout;
+	struct timeval* pTimeout;
+
+	const int maxsd = static_cast<int>(a_sock) + 1;
+
+	if (a_timeoutMs >= 0) {
+		aTimeout.tv_sec = a_timeoutMs / 1000L;
+		aTimeout.tv_usec = (a_timeoutMs % 1000L) * 1000L;
+		pTimeout = &aTimeout;
+	}
+	else { pTimeout = nullptr; }
+
+	switch (a_desc) {
+	case DeskType::read:
+		FD_ZERO(&rdfds);
+		FD_SET(a_sock, &rdfds);
+		pRdFds = &rdfds;
+		break;
+	case DeskType::write:
+		FD_ZERO(&wrfds);
+		FD_SET(a_sock, &wrfds);
+		pWrFds = &wrfds;
+		break;
+	case DeskType::err:
+		FD_ZERO(&errfds);
+		FD_SET(a_sock, &errfds);
+		pErFds = &errfds;
+		break;
+	case DeskType::read_and_write:
+		FD_ZERO(&rdfds);
+		FD_SET(a_sock, &rdfds);
+		pRdFds = &rdfds;
+		FD_ZERO(&wrfds);
+		FD_SET(a_sock, &wrfds);
+		pWrFds = &wrfds;
+		break;
+	case DeskType::read_and_err:
+		FD_ZERO(&rdfds);
+		FD_SET(a_sock, &rdfds);
+		pRdFds = &rdfds;
+		FD_ZERO(&errfds);
+		FD_SET(a_sock, &errfds);
+		pErFds = &errfds;
+		break;
+	case DeskType::write_and_err:
+		FD_ZERO(&wrfds);
+		FD_SET(a_sock, &wrfds);
+		pWrFds = &wrfds;
+		FD_ZERO(&errfds);
+		FD_SET(a_sock, &errfds);
+		pErFds = &errfds;
+		break;
+	default:
+		FD_ZERO(&rdfds);
+		FD_SET(a_sock, &rdfds);
+		pRdFds = &rdfds;
+		FD_ZERO(&wrfds);
+		FD_SET(a_sock, &wrfds);
+		pWrFds = &wrfds;
+		FD_ZERO(&errfds);
+		FD_SET(a_sock, &errfds);
+		pErFds = &errfds;
+		break;
+	}  //  switch (a_desc) {
+
+	const int rtn = ::select(maxsd, pRdFds, pWrFds, pErFds, pTimeout);
+
+	switch (rtn) {
+	case 0:	/* time out */
+		return 0;
+	case SOCKET_ERROR:
+		if (errno == EINTR) {/*interrupted by signal*/return -1; }  // interrupt
+		return -1;  // select error
+	default:
+		break;
+	}  //  switch (rtn){
+
+	int nCount = 0;
+	if (pRdFds && FD_ISSET(a_sock, pRdFds)) { ++nCount; }
+	if (pWrFds && FD_ISSET(a_sock, pWrFds)) { ++nCount; }
+	if (pErFds && FD_ISSET(a_sock, pErFds)) { ++nCount; }
+
+	// if nCount == 0 , we have fatal error, else we have data
+	return nCount ? nCount : (-1);
 }
 
 

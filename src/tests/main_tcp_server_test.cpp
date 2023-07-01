@@ -7,8 +7,15 @@
 //
 
 #include <cpputils/sockets/export_symbols.h>
+#include <cpputils/sockets/socket_data.hpp>
+#include <cpputils/sockets/tcp_server.hpp>
 
 int main(void)
 {
+	cpputils::sockets::tcp_server aServer;
+	aServer.StartServer(9030);
+	SWITCH_SCHEDULING(10000);
+	aServer.StoptServer();
+
 	return 0;;
 }

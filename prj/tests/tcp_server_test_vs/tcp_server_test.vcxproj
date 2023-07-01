@@ -302,10 +302,12 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\src\core\cpputils_sockets_core_tcp_server.cpp" />
     <ClCompile Include="..\..\..\src\core\cpputils_sockets_core_tcp_socket.cpp" />
+    <ClCompile Include="..\..\..\src\core\cpputils_unnamedsemaphore.cpp" />
     <ClCompile Include="..\..\..\src\tests\main_tcp_server_test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\cpputils\sockets\export_symbols.h" />
+    <ClInclude Include="..\..\..\include\cpputils\sockets\socket_data.hpp" />
     <ClInclude Include="..\..\..\include\cpputils\sockets\tcp_server.hpp" />
     <ClInclude Include="..\..\..\include\cpputils\sockets\tcp_socket.hpp" />
     <ClInclude Include="..\..\..\src\core\cpputils_sockets_core_tcp_socket_p.hpp" />
