@@ -28,6 +28,7 @@ class CSOCKETS_EXPORT tcp_server
 {
 public:
 	typedef ::std::function<void(tcp_socket&,const sockaddr_in* CPPUTILS_ARG_NN)>	TypeConnectClbk;
+	typedef ::std::function<void(void)>	TypeExtraCleanClbk;
 	static const TypeConnectClbk	s_defClbk;
 
 public:
@@ -43,7 +44,7 @@ public:
 	// server will start in the different thread
 	int StartServer(
 						int a_nPort, const TypeConnectClbk& a_clbk= s_defClbk, int a_lnTimeoutMs = 1000,
-						bool a_bOnlyLocalHost=false, bool a_bReuse=true);
+						bool a_bOnlyLocalHost=false, bool a_bReuse=true, const TypeExtraCleanClbk& a_ecclb = CPPUTILS_NULL);
 	void StoptServer();  // stops and waits to stop
 
 protected:

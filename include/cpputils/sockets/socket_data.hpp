@@ -39,6 +39,8 @@
 #endif
 #endif
 
+#include <cinternal/undisable_compiler_warnings.h>
+
 namespace cpputils { namespace sockets{
 
 #ifdef _WIN32

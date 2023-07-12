@@ -266,7 +266,7 @@ CSOCKETS_EXPORT const char* GetIPV4Address(const sockaddr_in* CPPUTILS_ARG_NN a_
 CPPUTILS_BEGIN_C
 
 
-static void cpputils_sockets_core_tcp_socket_clean(void) {
+static void cpputils_sockets_core_tcp_socket_clean(void) CPPUTILS_NOEXCEPT{
 #ifdef _WIN32
 	WSACleanup();
 #endif

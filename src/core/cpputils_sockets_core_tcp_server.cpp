@@ -17,10 +17,16 @@
 namespace cpputils { namespace sockets{
 
 
+#ifdef _MSC_VER
+#pragma warning (disable:5039)
+#endif
+
+
 class CPPUTILS_DLL_PRIVATE tcp_server_p
 {
 public:
 	tcp_server::TypeConnectClbk	clbk;
+	tcp_server::TypeExtraCleanClbk ecClbk;
 	socket_t					serv;
 	::std::thread				server_thread;
 	UnnamedSemaphore			sema;
@@ -87,9 +93,10 @@ void tcp_server::ReplaceWithOtherServer(tcp_server* CPPUTILS_ARG_NN a_pMM) noexc
 
 int tcp_server::StartServer(
 	int a_nPort, const TypeConnectClbk& a_clbk, int a_lnTimeoutMs,
-	bool a_bOnlyLocalHost, bool a_bReuse)
+	bool a_bOnlyLocalHost, bool a_bReuse, const TypeExtraCleanClbk& a_ecclb)
 {
 	m_serv_data_p->clbk = a_clbk;
+	m_serv_data_p->ecClbk = a_ecclb ? (a_ecclb) : ([]() {});
 
 	StoptServer();
 
@@ -162,6 +169,7 @@ void tcp_server_p::ServerThreadFunction(int a_nPort, int a_lnTimeoutMs, bool a_b
 
 	closesocketn(this->serv);
 	this->serv = CPPUTILS_SOCKS_CLOSE_SOCK;
+	this->ecClbk();
 
 }
 
