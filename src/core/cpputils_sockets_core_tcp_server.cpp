@@ -196,7 +196,8 @@ int tcp_server_p::CreateServer(int a_nPort, bool a_bOnlyLocalHost, bool a_bReuse
 
 	struct sockaddr_in addr;
 	memset(&addr, 0, sizeof(struct sockaddr_in));
-	addr.sin_family = (a_bOnlyLocalHost ? ((unsigned short)AF_UNIX):((unsigned short)AF_INET));
+	//addr.sin_family = (a_bOnlyLocalHost ? ((unsigned short)AF_UNIX):((unsigned short)AF_INET));
+	addr.sin_family = (unsigned short)AF_INET;
 	addr.sin_port = htons((u_short)a_nPort);
 	addr.sin_addr.s_addr = htonl((a_bOnlyLocalHost ? INADDR_LOOPBACK : INADDR_ANY));
 
