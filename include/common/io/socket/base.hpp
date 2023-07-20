@@ -128,6 +128,7 @@ class COMMON_SOCKETS_HANDLER_EXPORT Base : public common::io::Base
 {
 public:
 	Base();
+    Base(const Base&)=default;
 	virtual ~Base();
 
 	virtual bool isOpenC(void)const;

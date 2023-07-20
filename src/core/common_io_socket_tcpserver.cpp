@@ -158,16 +158,27 @@ void socket::TcpServer::RunServer(int a_lnTimeout, TypeAccept a_fpAddClient, voi
 }
 
 
+#ifdef _WIN32
+
+static VOID NTAPI QueueFncStatic (_In_ ULONG_PTR Parameter)
+{
+	(void)Parameter;
+}
+
+#endif
+
 
 void socket::TcpServer::StopServer(void)
 {
     int nCurrentThreadId(static_cast<int>(gettidNew()));
-    if((m_nWorkStatus != WORK_STATUSES::RUN)||(m_nWorkStatus != WORK_STATUSES::INITED2)){return;}
+    if((m_nWorkStatus != WORK_STATUSES::RUN)&&(m_nWorkStatus != WORK_STATUSES::INITED2)){return;}
 	
 	if(nCurrentThreadId!=m_nServerThreadId){
 		m_nWorkStatus = WORK_STATUSES::TRYING_TO_STOP;
 		closeC();
-#ifndef _WIN32
+#ifdef _WIN32
+        QueueUserAPC(&QueueFncStatic,(HANDLE)0,0);
+#else
         pthread_kill(m_serverThread,SIGPIPE);
 #endif
         while((m_nWorkStatus != WORK_STATUSES::INITED2) && (m_nWorkStatus== WORK_STATUSES::TRYING_TO_STOP)){SWITCH_SCHEDULING(1);}
@@ -264,7 +275,7 @@ int socket::TcpServer::CreateServer(int a_nPort, bool a_bReuse,bool a_bLoopback)
 	int rtn = -1,addr_len;
 	char l_host[MAX_HOSTNAME_LENGTH];
 
-    m_socket = ::socket( AF_INET, SOCK_STREAM, 0 );
+    m_socket = (int)::socket( AF_INET, SOCK_STREAM, 0 );
 	if (CHECK_FOR_SOCK_INVALID(m_socket)) { return(E_NO_SOCKET); }
 	
 	if(a_bReuse){int i(1);setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR, (char*)&i, sizeof(i));}

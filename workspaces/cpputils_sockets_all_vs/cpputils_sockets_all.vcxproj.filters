@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\include">
+      <UniqueIdentifier>{658427e4-3d94-4980-b2bc-785cb77233d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\include\common">
+      <UniqueIdentifier>{c21b5659-be0f-4a2b-a82d-6519e76dd3b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\include\common\io">
+      <UniqueIdentifier>{f148eeb2-64e5-4dd8-aa8e-bdcb32691cfb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\include\common\io\socket">
+      <UniqueIdentifier>{d915a6b5-9ede-46ad-9ebb-a09eb33faad1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="files">
+      <UniqueIdentifier>{467feddf-3304-4206-b376-a8b1664ed924}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="files\prj">
+      <UniqueIdentifier>{e4e3791e-4df0-4031-95bd-16bac08a79e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="files\prj\common">
+      <UniqueIdentifier>{a63ea37a-4fd2-46dd-8d28-dbfe03430dab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="files\prj\common\common_qt">
+      <UniqueIdentifier>{8b8f59b8-37e4-4a09-ab0e-6e34889e7fd0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\utils\entr_cpputils_sockets_all.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\include\common\io\socket\base.hpp">
+      <Filter>Header Files\include\common\io\socket</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\common\io\socket\tcp.hpp">
+      <Filter>Header Files\include\common\io\socket</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\common\io\socket\tcpserver.hpp">
+      <Filter>Header Files\include\common\io\socket</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\common_sockets_internal.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\common\io\socket\base.impl.hpp">
+      <Filter>Header Files\include\common\io\socket</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\common\io\socket\tcpsetver.impl.hpp">
+      <Filter>Header Files\include\common\io\socket</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\common\io\base.hpp">
+      <Filter>Header Files\include\common\io</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\.gitattributes">
+      <Filter>files</Filter>
+    </None>
+    <None Include="..\..\.gitignore">
+      <Filter>files</Filter>
+    </None>
+    <None Include="..\..\.gitmodules">
+      <Filter>files</Filter>
+    </None>
+    <None Include="..\..\LICENSE">
+      <Filter>files</Filter>
+    </None>
+    <None Include="..\..\README.md">
+      <Filter>files</Filter>
+    </None>
+    <None Include="..\..\prj\common\common_qt\flags_common.pri">
+      <Filter>files\prj\common\common_qt</Filter>
+    </None>
+    <None Include="..\..\prj\common\common_qt\resolve_common.pri">
+      <Filter>files\prj\common\common_qt</Filter>
+    </None>
+    <None Include="..\..\prj\common\common_qt\sys_common.pri">
+      <Filter>files\prj\common\common_qt</Filter>
+    </None>
+  </ItemGroup>
+</Project>

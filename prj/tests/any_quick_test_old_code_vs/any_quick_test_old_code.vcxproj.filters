@@ -3,63 +3,66 @@
   <ItemGroup>
     <Filter Include="Source Files">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="Header Files">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
     <Filter Include="Header Files\include">
-      <UniqueIdentifier>{658427e4-3d94-4980-b2bc-785cb77233d8}</UniqueIdentifier>
+      <UniqueIdentifier>{2c0aa386-ee5f-432b-9503-035e03ab6d20}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\include\common">
-      <UniqueIdentifier>{c21b5659-be0f-4a2b-a82d-6519e76dd3b6}</UniqueIdentifier>
+      <UniqueIdentifier>{d5c8fe2c-3624-4a54-acd8-9db66831370b}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\include\common\io">
-      <UniqueIdentifier>{f148eeb2-64e5-4dd8-aa8e-bdcb32691cfb}</UniqueIdentifier>
+      <UniqueIdentifier>{468af2c9-e475-4f7f-ab71-c3c382c1ace1}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\include\common\io\socket">
-      <UniqueIdentifier>{d915a6b5-9ede-46ad-9ebb-a09eb33faad1}</UniqueIdentifier>
+      <UniqueIdentifier>{de959cc2-3085-46db-8c08-3da07e0346dc}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\core\common_io_base.cpp">
+    <ClCompile Include="..\..\..\src\core\common_io_base.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\core\common_io_socket_base.cpp">
+    <ClCompile Include="..\..\..\src\core\common_io_socket_base.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\core\common_io_socket_tcp.cpp">
+    <ClCompile Include="..\..\..\src\core\common_io_socket_tcp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\core\common_io_socket_tcpserver.cpp">
+    <ClCompile Include="..\..\..\src\core\common_io_socket_tcpserver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\tests\main_any_quick_test_old_code.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\include\common\io\socket\base.hpp">
-      <Filter>Header Files\include\common\io\socket</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\common\io\socket\tcp.hpp">
-      <Filter>Header Files\include\common\io\socket</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\common\io\socket\tcpserver.hpp">
-      <Filter>Header Files\include\common\io\socket</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\common_sockets_internal.h">
+    <ClInclude Include="..\..\..\include\common_sockets_internal.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\common\io\socket\base.impl.hpp">
+    <ClInclude Include="..\..\..\include\common\io\socket\base.hpp">
       <Filter>Header Files\include\common\io\socket</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\common\io\socket\tcpsetver.impl.hpp">
+    <ClInclude Include="..\..\..\include\common\io\socket\base.impl.hpp">
       <Filter>Header Files\include\common\io\socket</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\common\io\base.hpp">
+    <ClInclude Include="..\..\..\include\common\io\socket\tcp.hpp">
+      <Filter>Header Files\include\common\io\socket</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\common\io\socket\tcpserver.hpp">
+      <Filter>Header Files\include\common\io\socket</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\common\io\socket\tcpsetver.impl.hpp">
+      <Filter>Header Files\include\common\io\socket</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\common\io\base.hpp">
       <Filter>Header Files\include\common\io</Filter>
     </ClInclude>
   </ItemGroup>
