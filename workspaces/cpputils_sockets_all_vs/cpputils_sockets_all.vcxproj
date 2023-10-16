@@ -299,10 +299,19 @@
     <None Include="..\..\.gitignore" />
     <None Include="..\..\.gitmodules" />
     <None Include="..\..\LICENSE" />
-    <None Include="..\..\prj\common\common_qt\flags_common.pri" />
-    <None Include="..\..\prj\common\common_qt\resolve_common.pri" />
-    <None Include="..\..\prj\common\common_qt\sys_common.pri" />
+    <None Include="..\..\prj\common\common_mkfl\flagsandsys_common.unix.Makefile" />
+    <None Include="..\..\prj\common\common_mkfl\flagsandsys_common.windows.Makefile" />
+    <None Include="..\..\prj\common\common_mkfl\flagsandsys_common_private.unix.Makefile" />
+    <None Include="..\..\prj\common\common_mkfl\flagsandsys_common_private.windows.Makefile" />
+    <None Include="..\..\prj\common\common_mkfl\raw\flagsandsys_common_private_raw.unix.Makefile" />
+    <None Include="..\..\prj\common\common_mkfl\raw\flagsandsys_common_private_raw.windows.Makefile" />
+    <None Include="..\..\prj\common\common_mkfl\raw\flagsandsys_common_raw.unix.Makefile" />
+    <None Include="..\..\prj\common\common_mkfl\raw\flagsandsys_common_raw.windows.Makefile" />
+    <None Include="..\..\prj\common\common_qt\flagsandsys_common.pri" />
+    <None Include="..\..\prj\common\common_qt\flagsandsys_common_private.pri" />
     <None Include="..\..\README.md" />
+    <None Include="..\cpputils_sockets_all_mkfl\cpputils_sockets_all.unix.Makefile" />
+    <None Include="..\cpputils_sockets_all_qt\cpputils_sockets_all.pro" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

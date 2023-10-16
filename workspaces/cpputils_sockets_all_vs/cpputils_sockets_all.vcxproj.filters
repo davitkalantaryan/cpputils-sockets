@@ -25,17 +25,26 @@
     <Filter Include="Header Files\include\common\io\socket">
       <UniqueIdentifier>{d915a6b5-9ede-46ad-9ebb-a09eb33faad1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="files">
+    <Filter Include="repo_files">
       <UniqueIdentifier>{467feddf-3304-4206-b376-a8b1664ed924}</UniqueIdentifier>
     </Filter>
-    <Filter Include="files\prj">
+    <Filter Include="repo_files\prj">
       <UniqueIdentifier>{e4e3791e-4df0-4031-95bd-16bac08a79e7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="files\prj\common">
+    <Filter Include="repo_files\prj\common">
       <UniqueIdentifier>{a63ea37a-4fd2-46dd-8d28-dbfe03430dab}</UniqueIdentifier>
     </Filter>
-    <Filter Include="files\prj\common\common_qt">
+    <Filter Include="repo_files\prj\common\common_qt">
       <UniqueIdentifier>{8b8f59b8-37e4-4a09-ab0e-6e34889e7fd0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="files">
+      <UniqueIdentifier>{f5f2a610-eaa7-4ea3-81fa-7f11360bc54f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="repo_files\prj\common\common_mkfl">
+      <UniqueIdentifier>{ec6662c1-6e47-4211-8ed3-f5d90b9fbd66}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="repo_files\prj\common\common_mkfl\raw">
+      <UniqueIdentifier>{bea17529-a79f-4811-af25-a3a2af2c0290}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -68,28 +77,55 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\.gitattributes">
-      <Filter>files</Filter>
+      <Filter>repo_files</Filter>
     </None>
     <None Include="..\..\.gitignore">
-      <Filter>files</Filter>
+      <Filter>repo_files</Filter>
     </None>
     <None Include="..\..\.gitmodules">
-      <Filter>files</Filter>
+      <Filter>repo_files</Filter>
     </None>
     <None Include="..\..\LICENSE">
-      <Filter>files</Filter>
+      <Filter>repo_files</Filter>
     </None>
     <None Include="..\..\README.md">
+      <Filter>repo_files</Filter>
+    </None>
+    <None Include="..\cpputils_sockets_all_mkfl\cpputils_sockets_all.unix.Makefile">
       <Filter>files</Filter>
     </None>
-    <None Include="..\..\prj\common\common_qt\flags_common.pri">
-      <Filter>files\prj\common\common_qt</Filter>
+    <None Include="..\cpputils_sockets_all_qt\cpputils_sockets_all.pro">
+      <Filter>files</Filter>
     </None>
-    <None Include="..\..\prj\common\common_qt\resolve_common.pri">
-      <Filter>files\prj\common\common_qt</Filter>
+    <None Include="..\..\prj\common\common_qt\flagsandsys_common.pri">
+      <Filter>repo_files\prj\common\common_qt</Filter>
     </None>
-    <None Include="..\..\prj\common\common_qt\sys_common.pri">
-      <Filter>files\prj\common\common_qt</Filter>
+    <None Include="..\..\prj\common\common_qt\flagsandsys_common_private.pri">
+      <Filter>repo_files\prj\common\common_qt</Filter>
+    </None>
+    <None Include="..\..\prj\common\common_mkfl\flagsandsys_common.unix.Makefile">
+      <Filter>repo_files\prj\common\common_mkfl</Filter>
+    </None>
+    <None Include="..\..\prj\common\common_mkfl\flagsandsys_common.windows.Makefile">
+      <Filter>repo_files\prj\common\common_mkfl</Filter>
+    </None>
+    <None Include="..\..\prj\common\common_mkfl\flagsandsys_common_private.unix.Makefile">
+      <Filter>repo_files\prj\common\common_mkfl</Filter>
+    </None>
+    <None Include="..\..\prj\common\common_mkfl\flagsandsys_common_private.windows.Makefile">
+      <Filter>repo_files\prj\common\common_mkfl</Filter>
+    </None>
+    <None Include="..\..\prj\common\common_mkfl\raw\flagsandsys_common_private_raw.unix.Makefile">
+      <Filter>repo_files\prj\common\common_mkfl\raw</Filter>
+    </None>
+    <None Include="..\..\prj\common\common_mkfl\raw\flagsandsys_common_private_raw.windows.Makefile">
+      <Filter>repo_files\prj\common\common_mkfl\raw</Filter>
+    </None>
+    <None Include="..\..\prj\common\common_mkfl\raw\flagsandsys_common_raw.unix.Makefile">
+      <Filter>repo_files\prj\common\common_mkfl\raw</Filter>
+    </None>
+    <None Include="..\..\prj\common\common_mkfl\raw\flagsandsys_common_raw.windows.Makefile">
+      <Filter>repo_files\prj\common\common_mkfl\raw</Filter>
     </None>
   </ItemGroup>
 </Project>
