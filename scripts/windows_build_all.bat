@@ -52,7 +52,7 @@ for %%x in (%*) do (
 )
 
 echo action=%ActionConfirm%,PlatformTarget=!PlatformTarget!,configuration=%Configuration%
-cd "%repositoryRoot%prj\tests\cpputils_unit_test_mult"
+cd "%repositoryRoot%prj\tests\cppsockets_unit_test_mult"
 if not "!ERRORLEVEL!"=="0" (exit /b !ERRORLEVEL!)
 
 for %%p in (%PlatformTarget%) do (
@@ -60,9 +60,9 @@ for %%p in (%PlatformTarget%) do (
 	for %%c in (%Configuration%) do (
 		echo "!!!!!!!!!!!! !!!!!!!!!!!! compiling for configuration %%c"
 		rem call msbuild "%repositoryRoot%workspaces\cpputils_all_vs\cpputils_all.sln" /t:!ActionConfirm! /p:Configuration=%%c /p:Platform=%%p
-		call msbuild "%repositoryRoot%workspaces\cpputils_all_vs\cpputils_all.sln" /t:!ActionConfirm! /p:Configuration=%%c /p:Platform=%%p
+		call msbuild "%repositoryRoot%workspaces\cpputils_sockets_all_vs\cpputils_sockets_all.sln" /t:!ActionConfirm! /p:Configuration=%%c /p:Platform=%%p
 		if not "!ERRORLEVEL!"=="0" (exit /b !ERRORLEVEL!)
-		call nmake -f cpputils_unit_test.windows.Makefile /e Platform=%%p /e Configuration=%%c
+		call nmake -f cppsockets_unit_test.windows.Makefile /e Platform=%%p /e Configuration=%%c
 		if not "!ERRORLEVEL!"=="0" (exit /b !ERRORLEVEL!)
 	)
 )
