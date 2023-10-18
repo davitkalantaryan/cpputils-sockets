@@ -270,15 +270,6 @@
     <ClCompile Include="..\..\src\utils\entr_cpputils_sockets_all.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\include\common\io\base.hpp" />
-    <ClInclude Include="..\..\include\common\io\socket\base.hpp" />
-    <ClInclude Include="..\..\include\common\io\socket\base.impl.hpp" />
-    <ClInclude Include="..\..\include\common\io\socket\tcp.hpp" />
-    <ClInclude Include="..\..\include\common\io\socket\tcpserver.hpp" />
-    <ClInclude Include="..\..\include\common\io\socket\tcpsetver.impl.hpp" />
-    <ClInclude Include="..\..\include\common_sockets_internal.h" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="..\..\.gitattributes" />
     <None Include="..\..\.gitignore" />
     <None Include="..\..\.gitmodules" />

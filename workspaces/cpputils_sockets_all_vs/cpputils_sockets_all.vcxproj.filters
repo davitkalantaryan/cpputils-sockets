@@ -13,18 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\include">
-      <UniqueIdentifier>{658427e4-3d94-4980-b2bc-785cb77233d8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\include\common">
-      <UniqueIdentifier>{c21b5659-be0f-4a2b-a82d-6519e76dd3b6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\include\common\io">
-      <UniqueIdentifier>{f148eeb2-64e5-4dd8-aa8e-bdcb32691cfb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\include\common\io\socket">
-      <UniqueIdentifier>{d915a6b5-9ede-46ad-9ebb-a09eb33faad1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="repo_files">
       <UniqueIdentifier>{467feddf-3304-4206-b376-a8b1664ed924}</UniqueIdentifier>
     </Filter>
@@ -54,29 +42,6 @@
     <ClCompile Include="..\..\src\utils\entr_cpputils_sockets_all.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\include\common\io\socket\base.hpp">
-      <Filter>Header Files\include\common\io\socket</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\common\io\socket\tcp.hpp">
-      <Filter>Header Files\include\common\io\socket</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\common\io\socket\tcpserver.hpp">
-      <Filter>Header Files\include\common\io\socket</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\common_sockets_internal.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\common\io\socket\base.impl.hpp">
-      <Filter>Header Files\include\common\io\socket</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\common\io\socket\tcpsetver.impl.hpp">
-      <Filter>Header Files\include\common\io\socket</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\common\io\base.hpp">
-      <Filter>Header Files\include\common\io</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\.gitattributes">
