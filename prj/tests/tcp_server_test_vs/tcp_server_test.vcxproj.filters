@@ -39,9 +39,6 @@
     <ClCompile Include="..\..\..\src\core\cpputils_sockets_core_tcp_server.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\contrib\cpputils\src\core\cpputils_unnamedsemaphore.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\cpputils\sockets\export_symbols.h">

@@ -294,6 +294,15 @@
     <None Include="..\..\prj\common\common_qt\flagsandsys_common.pri" />
     <None Include="..\..\prj\common\common_qt\flagsandsys_common_private.pri" />
     <None Include="..\..\README.md" />
+    <None Include="..\..\scripts\unix_build_all.sh" />
+    <None Include="..\..\scripts\unix_prepare_host.sh" />
+    <None Include="..\..\scripts\unix_prepare_repository.sh" />
+    <None Include="..\..\scripts\unix_run_tests.sh" />
+    <None Include="..\..\scripts\windows_build_all.bat" />
+    <None Include="..\..\scripts\windows_prepare_host.bat" />
+    <None Include="..\..\scripts\windows_prepare_repository.bat" />
+    <None Include="..\..\scripts\windows_run_tests.bat" />
+    <None Include="..\..\scripts\windows_set_vs_toolset_and_run.bat" />
     <None Include="..\cpputils_sockets_all_mkfl\cpputils_sockets_all.unix.Makefile" />
     <None Include="..\cpputils_sockets_all_qt\cpputils_sockets_all.pro" />
   </ItemGroup>

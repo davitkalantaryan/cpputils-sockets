@@ -284,7 +284,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\contrib\cpputils\src\core\cpputils_unnamedsemaphore.cpp" />
     <ClCompile Include="..\..\..\src\core\cpputils_sockets_core_tcp_server.cpp" />
     <ClCompile Include="..\..\..\src\core\cpputils_sockets_core_tcp_socket.cpp" />
     <ClCompile Include="..\..\..\src\tests\main_tcp_server_test.cpp" />

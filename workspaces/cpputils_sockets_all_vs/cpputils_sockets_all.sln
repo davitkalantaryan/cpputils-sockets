@@ -15,12 +15,24 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "any_quick_test", "..\..\prj
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "any_quick_test_old_code", "..\..\prj\tests\any_quick_test_old_code_vs\any_quick_test_old_code.vcxproj", "{F7F40C31-E850-46AA-8604-1F501368C8F7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F1238E65-69FA-4B5D-996D-6ED48ECE4B64} = {F1238E65-69FA-4B5D-996D-6ED48ECE4B64}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tcp_client_test", "..\..\prj\tests\tcp_client_test_vs\tcp_client_test.vcxproj", "{90F16DD3-2EB5-42B0-BFF9-88144338D6EE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F1238E65-69FA-4B5D-996D-6ED48ECE4B64} = {F1238E65-69FA-4B5D-996D-6ED48ECE4B64}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tcp_server_test", "..\..\prj\tests\tcp_server_test_vs\tcp_server_test.vcxproj", "{DFC222FD-933D-4897-AD26-1ED406F6E7D8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F1238E65-69FA-4B5D-996D-6ED48ECE4B64} = {F1238E65-69FA-4B5D-996D-6ED48ECE4B64}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cppsockets_unit_test", "..\..\prj\tests\cppsockets_unit_test_mult\cppsockets_unit_test.vcxproj", "{E6F8B6C2-4CA9-4B3A-9A00-83D011DE88FA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F1238E65-69FA-4B5D-996D-6ED48ECE4B64} = {F1238E65-69FA-4B5D-996D-6ED48ECE4B64}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

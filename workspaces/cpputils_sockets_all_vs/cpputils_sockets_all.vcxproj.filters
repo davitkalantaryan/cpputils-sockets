@@ -46,6 +46,9 @@
     <Filter Include="repo_files\prj\common\common_mkfl\raw">
       <UniqueIdentifier>{bea17529-a79f-4811-af25-a3a2af2c0290}</UniqueIdentifier>
     </Filter>
+    <Filter Include="repo_files\scripts">
+      <UniqueIdentifier>{ca244713-14b0-4c31-8fd1-480242acba63}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\utils\entr_cpputils_sockets_all.cpp">
@@ -126,6 +129,33 @@
     </None>
     <None Include="..\..\prj\common\common_mkfl\raw\flagsandsys_common_raw.windows.Makefile">
       <Filter>repo_files\prj\common\common_mkfl\raw</Filter>
+    </None>
+    <None Include="..\..\scripts\unix_build_all.sh">
+      <Filter>repo_files\scripts</Filter>
+    </None>
+    <None Include="..\..\scripts\unix_prepare_host.sh">
+      <Filter>repo_files\scripts</Filter>
+    </None>
+    <None Include="..\..\scripts\unix_prepare_repository.sh">
+      <Filter>repo_files\scripts</Filter>
+    </None>
+    <None Include="..\..\scripts\unix_run_tests.sh">
+      <Filter>repo_files\scripts</Filter>
+    </None>
+    <None Include="..\..\scripts\windows_build_all.bat">
+      <Filter>repo_files\scripts</Filter>
+    </None>
+    <None Include="..\..\scripts\windows_prepare_host.bat">
+      <Filter>repo_files\scripts</Filter>
+    </None>
+    <None Include="..\..\scripts\windows_prepare_repository.bat">
+      <Filter>repo_files\scripts</Filter>
+    </None>
+    <None Include="..\..\scripts\windows_run_tests.bat">
+      <Filter>repo_files\scripts</Filter>
+    </None>
+    <None Include="..\..\scripts\windows_set_vs_toolset_and_run.bat">
+      <Filter>repo_files\scripts</Filter>
     </None>
   </ItemGroup>
 </Project>

@@ -45,6 +45,15 @@
     <ClCompile Include="..\..\..\src\core\cpputils_sockets_core_tcp_socket.cpp">
       <Filter>Source Files\core</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\contrib\cinternal\src\core\cinternal_core_logger - Copy.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\contrib\cinternal\src\core\cinternal_core_unit_test_checks - Copy.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\contrib\cinternal\src\core\cinternal_core_unit_test_main - Copy.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\cpputils\sockets\export_symbols.h">
