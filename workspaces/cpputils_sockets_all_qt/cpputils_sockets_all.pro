@@ -8,6 +8,8 @@ include ( "$${PWD}/../../prj/common/common_qt/flagsandsys_common_private.pri" )
 
 SUBDIRS		+=	"$${cpputilsSocketsRepoRoot}/prj/tests/any_quick_test_qt/any_quick_test.pro"
 SUBDIRS		+=	"$${cpputilsSocketsRepoRoot}/prj/tests/cppsockets_unit_test_mult/cppsockets_unit_test.pro"
+SUBDIRS		+=	"$${cpputilsSocketsRepoRoot}/prj/tests/tcp_client_test_qt/tcp_client_test.pro"
+SUBDIRS		+=	"$${cpputilsSocketsRepoRoot}/prj/tests/tcp_server_test_qt/tcp_server_test.pro"
 
 cinternalFromHere{
         SUBDIRS	+= "$${cinternalRepoRoot}/workspaces/cinternal_all_qt/cinternal_all.pro"
