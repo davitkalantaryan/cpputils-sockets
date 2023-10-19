@@ -1,5 +1,5 @@
 #
-# repo:			cpputils
+# repo:			cppsockets
 # name:			flagsandsys_common.pri
 # path:			prj/common/common_qt/flagsandsys_common.pri
 # created on:   2023 Jun 21
@@ -10,24 +10,24 @@
 
 message("!!! $${PWD}/flagsandsys_common.pri")
 
-isEmpty(cpputilsFlagsAndSysCommonIncluded){
-    cpputilsFlagsAndSysCommonIncluded = 1
+isEmpty(cpputilsSocketsFlagsAndSysCommonIncluded){
+    cpputilsSocketsFlagsAndSysCommonIncluded = 1
 
-    cpputilsRepoRoot = $${PWD}/../../..
+    cpputilsSocketsRepoRoot = $${PWD}/../../..
 
     isEmpty(artifactRoot) {
         artifactRoot = $$(artifactRoot)
 	        isEmpty(artifactRoot) {
-		        artifactRoot = $${cpputilsRepoRoot}
+		        artifactRoot = $${cpputilsSocketsRepoRoot}
 		}
     }
 
-    include("$${cpputilsRepoRoot}/contrib/cinternal/prj/common/common_qt/flagsandsys_common.pri")
+    include("$${cpputilsSocketsRepoRoot}/contrib/cinternal/prj/common/common_qt/flagsandsys_common.pri")
 
-    INCLUDEPATH += $${cpputilsRepoRoot}/include
+    INCLUDEPATH += $${cpputilsSocketsRepoRoot}/include
 
-    LIBS	+= -L$${cpputilsRepoRoot}/sys/$${CODENAME}/$$CONFIGURATION/lib
-    LIBS	+= -L$${cpputilsRepoRoot}/sys/$${CODENAME}/$$CONFIGURATION/tlib
+    LIBS	+= -L$${cpputilsSocketsRepoRoot}/sys/$${CODENAME}/$$CONFIGURATION/lib
+    LIBS	+= -L$${cpputilsSocketsRepoRoot}/sys/$${CODENAME}/$$CONFIGURATION/tlib
 
     OTHER_FILES += $$files($${PWD}/../common_mkfl/*.Makefile,true)
 }

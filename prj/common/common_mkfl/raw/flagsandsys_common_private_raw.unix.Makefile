@@ -1,5 +1,5 @@
 #
-# repo:		    cpputils
+# repo:		    cppsockets
 # file:		    flagsandsys_common_private_pure.unix.Makefile
 # created on:	    2020 Dec 14
 # created by:	    Davit Kalantaryan (davit.kalantaryan@desy.de)
@@ -9,4 +9,4 @@
 mkfile_path		=  $(abspath $(lastword $(MAKEFILE_LIST)))
 mkfile_dir		=  $(shell dirname $(mkfile_path))
 include $(mkfile_dir)/../flagsandsys_common.unix.Makefile
-COMMON_FLAGS	+= -I$(cpputilsRepoRoot)/src/include
+COMMON_FLAGS	+= -I$(cpputilsSocketsRepoRoot)/src/include

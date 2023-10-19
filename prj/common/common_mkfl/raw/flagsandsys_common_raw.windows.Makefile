@@ -1,5 +1,5 @@
 #
-# repo:		cpputils
+# repo:		cppsockets
 # file:		flagsandsys_common_pure.windows.Makefile
 # created on:	2020 Dec 14
 # created by:	Davit Kalantaryan (davit.kalantaryan@desy.de)
@@ -10,21 +10,21 @@
 MakeFileDir			= $(MAKEDIR)\..
 !ENDIF
 
-!IFNDEF cpputilsRepoRoot
-cpputilsRepoRoot	= $(MakeFileDir)\..\..\..
+!IFNDEF cpputilsSocketsRepoRoot
+cpputilsSocketsRepoRoot	= $(MakeFileDir)\..\..\..
 !ENDIF
 
 !IFNDEF artifactRoot
-artifactRoot	= $(cpputilsRepoRoot)
+artifactRoot	= $(cpputilsSocketsRepoRoot)
 !ENDIF
 
 !IFNDEF cinternalRepoRoot
-cinternalRepoRoot	= $(cpputilsRepoRoot)\contrib\cinternal
+cinternalRepoRoot	= $(cpputilsSocketsRepoRoot)\contrib\cinternal
 !ENDIF
 
 !include <$(cinternalRepoRoot)\prj\common\common_mkfl\flagsandsys_common.windows.Makefile>
 
-CFLAGS				= $(CFLAGS) /I"$(cpputilsRepoRoot)\include"
+CFLAGS				= $(CFLAGS) /I"$(cpputilsSocketsRepoRoot)\include"
 
-LFLAGS				= $(LFLAGS) /LIBPATH:"$(cpputilsRepoRoot)\sys\win_$(Platform)\$(Configuration)\lib"
-LFLAGS				= $(LFLAGS) /LIBPATH:"$(cpputilsRepoRoot)\sys\win_$(Platform)\$(Configuration)\tlib"
+LFLAGS				= $(LFLAGS) /LIBPATH:"$(cpputilsSocketsRepoRoot)\sys\win_$(Platform)\$(Configuration)\lib"
+LFLAGS				= $(LFLAGS) /LIBPATH:"$(cpputilsSocketsRepoRoot)\sys\win_$(Platform)\$(Configuration)\tlib"
