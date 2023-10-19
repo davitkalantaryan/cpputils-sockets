@@ -52,4 +52,5 @@ fi
 
 cd ${repositoryRoot}/sys/${lsbCode}/Debug/test
 
-./cpputils_unit_test
+./cppsockets_unit_test
+./any_quick_test
