@@ -156,9 +156,10 @@ void tcp_server_p::ServerThreadFunction(int a_nPort, int a_lnTimeoutMs, bool a_b
 
 #ifndef _WIN32
 	struct sigaction newAction;
-	newAction.sa_flags = 0;
+    memset(&newAction,0,sizeof(struct sigaction));
+	//newAction.sa_flags = 0; // because of memset
 	sigemptyset(&newAction.sa_mask);
-	newAction.sa_restorer = nullptr;
+	//newAction.sa_restorer = nullptr;  // because of memset
 	newAction.sa_handler = &SigHandlerFunction;
 	sigaction(SIGPIPE, &newAction, nullptr);
 #endif
