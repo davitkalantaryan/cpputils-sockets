@@ -30,4 +30,4 @@ SOURCES	+=		\
 HEADERS += $$files($${cpputilsSocketsRepoRoot}/include/*.h,true)
 HEADERS += $$files($${cpputilsSocketsRepoRoot}/include/*.hpp,true)
 
-#OTHER_FILES += $$files($${PWD}/../any_quick_test_mkfl/*.Makefile,false)
+OTHER_FILES += $$files($${PWD}/../any_quick_test_mkfl/*.Makefile,false)

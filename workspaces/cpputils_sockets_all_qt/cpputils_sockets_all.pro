@@ -26,6 +26,7 @@ OTHER_FILES += $$files($${cpputilsSocketsRepoRoot}/docs/*.md,true)
 OTHER_FILES += $$files($${cpputilsSocketsRepoRoot}/docs/*.txt,true)
 OTHER_FILES += $$files($${cpputilsSocketsRepoRoot}/.github/*.yml,true)
 OTHER_FILES += $$files($${cpputilsSocketsRepoRoot}/prj/common/common_mkfl/*.Makefile)
+OTHER_FILES += $$files($${PWD}/../cpputils_sockets_all_mkfl/*.Makefile)
 
 
 OTHER_FILES	+=	\
