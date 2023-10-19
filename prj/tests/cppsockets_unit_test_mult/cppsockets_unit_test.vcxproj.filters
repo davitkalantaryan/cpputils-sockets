@@ -45,6 +45,15 @@
     <ClCompile Include="..\..\..\src\core\cpputils_sockets_core_tcp_socket.cpp">
       <Filter>Source Files\core</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\contrib\cinternal\src\core\cinternal_core_logger.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\contrib\cinternal\src\core\cinternal_core_unit_test_checks.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\contrib\cinternal\src\core\cinternal_core_unit_test_main.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\cpputils\sockets\export_symbols.h">
@@ -59,5 +68,16 @@
     <ClInclude Include="..\..\..\include\cpputils\sockets\tcp_socket.hpp">
       <Filter>Header Files\incude\cpputils\sockets</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cppsockets_unit_test.pro">
+      <Filter>files</Filter>
+    </None>
+    <None Include="cppsockets_unit_test.unix.Makefile">
+      <Filter>files</Filter>
+    </None>
+    <None Include="cppsockets_unit_test.windows.Makefile">
+      <Filter>files</Filter>
+    </None>
   </ItemGroup>
 </Project>

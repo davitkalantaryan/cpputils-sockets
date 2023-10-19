@@ -8,8 +8,9 @@
 
 #include <cpputils/sockets/tcp_server.hpp>
 #include "cpputils_sockets_core_tcp_socket_p.hpp"
-#include <cpputils/unnamedsemaphore.hpp>
-#include <cinternal/flagshelper02.h>
+#define cinternal_unnamed_sema_wait_ms_needed
+#include <cinternal/unnamed_semaphore.h>
+#include <cinternal/bistateflags.h>
 #include <thread>
 #include <string.h>
 #include <stdlib.h>
@@ -29,8 +30,8 @@ public:
 	tcp_server::TypeExtraCleanClbk ecClbk;
 	socket_t					serv;
 	::std::thread				server_thread;
-	UnnamedSemaphore			sema;
-	CPPUTILS_FLAGS_UN(threadStarted,shouldRun,runs, hasError)	flags;
+	cinternal_unnamed_sema_t	m_sema;
+	CPPUTILS_BISTATE_FLAGS_UN(threadStarted,shouldRun,runs, hasError)	flags;
 
 public:
 	tcp_server_p();
@@ -107,7 +108,8 @@ int tcp_server::StartServer(
 	});
 
 	m_serv_data_p->flags.wr.threadStarted = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
-	m_serv_data_p->sema.Wait();
+	//m_serv_data_p->sema.Wait();
+	cinternal_unnamed_sema_wait(&(m_serv_data_p->m_sema));
 
 	return m_serv_data_p->flags.rd.runs_true ? 0 : (-1);
 }
@@ -157,13 +159,15 @@ void tcp_server_p::ServerThreadFunction(int a_nPort, int a_lnTimeoutMs, bool a_b
 	if (CreateServer(a_nPort, a_bOnlyLocalHost, a_bReuse)) {
 		this->flags.wr.hasError = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
 		this->flags.wr.runs = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
-		this->sema.Post();
+		//this->sema.Post();
+		cinternal_unnamed_sema_post(&m_sema);
 		return;
 	}
 
 	this->flags.wr.hasError = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
 	this->flags.wr.runs = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
-	this->sema.Post();
+	//this->sema.Post();
+	cinternal_unnamed_sema_post(&m_sema);
 
 	RunServer(a_lnTimeoutMs);
 

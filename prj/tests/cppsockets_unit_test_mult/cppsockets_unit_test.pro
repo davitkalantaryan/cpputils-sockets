@@ -1,7 +1,8 @@
 #
-# file:			cpputils_unit_test.pro
-# path:			prj/tests/cpputils_unit_test_mult/cpputils_unit_test.pro
-# created on:	2021 Mar 27
+# repo:         cppsockets
+# file:			cppsockets_unit_test.pro
+# path:			prj/tests/cpputils_unit_test_mult/cppsockets_unit_test.pro
+# created on:	2023 Oct 17
 # created by:	Davit Kalantaryan
 #
 
@@ -25,8 +26,8 @@ win32{
 DEFINES += CINTERNAL_UNIT_TEST_USE_GTEST_LIKE_MACROSES
 
 
-SOURCES	+= $$files($${cpputilsRepoRoot}/src/core/*.cpp)  # I assume, that in core we will not have subdirs
-SOURCES += $$files($${cpputilsRepoRoot}/src/tests/unit_test/*.cpp)
+SOURCES	+= $$files($${cpputilsSocketsRepoRoot}/src/core/*.cpp)  # I assume, that in core we will not have subdirs
+SOURCES += $$files($${cpputilsSocketsRepoRoot}/src/tests/unit_test/*.cpp)
 
 SOURCES +=  \
     "$${cinternalRepoRoot}/src/core/cinternal_core_logger.c"				\

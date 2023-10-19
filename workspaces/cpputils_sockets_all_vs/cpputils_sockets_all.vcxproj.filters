@@ -13,18 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\include">
-      <UniqueIdentifier>{658427e4-3d94-4980-b2bc-785cb77233d8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\include\common">
-      <UniqueIdentifier>{c21b5659-be0f-4a2b-a82d-6519e76dd3b6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\include\common\io">
-      <UniqueIdentifier>{f148eeb2-64e5-4dd8-aa8e-bdcb32691cfb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\include\common\io\socket">
-      <UniqueIdentifier>{d915a6b5-9ede-46ad-9ebb-a09eb33faad1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="repo_files">
       <UniqueIdentifier>{467feddf-3304-4206-b376-a8b1664ed924}</UniqueIdentifier>
     </Filter>
@@ -46,34 +34,14 @@
     <Filter Include="repo_files\prj\common\common_mkfl\raw">
       <UniqueIdentifier>{bea17529-a79f-4811-af25-a3a2af2c0290}</UniqueIdentifier>
     </Filter>
+    <Filter Include="repo_files\scripts">
+      <UniqueIdentifier>{ca244713-14b0-4c31-8fd1-480242acba63}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\utils\entr_cpputils_sockets_all.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\include\common\io\socket\base.hpp">
-      <Filter>Header Files\include\common\io\socket</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\common\io\socket\tcp.hpp">
-      <Filter>Header Files\include\common\io\socket</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\common\io\socket\tcpserver.hpp">
-      <Filter>Header Files\include\common\io\socket</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\common_sockets_internal.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\common\io\socket\base.impl.hpp">
-      <Filter>Header Files\include\common\io\socket</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\common\io\socket\tcpsetver.impl.hpp">
-      <Filter>Header Files\include\common\io\socket</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\common\io\base.hpp">
-      <Filter>Header Files\include\common\io</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\.gitattributes">
@@ -126,6 +94,33 @@
     </None>
     <None Include="..\..\prj\common\common_mkfl\raw\flagsandsys_common_raw.windows.Makefile">
       <Filter>repo_files\prj\common\common_mkfl\raw</Filter>
+    </None>
+    <None Include="..\..\scripts\unix_build_all.sh">
+      <Filter>repo_files\scripts</Filter>
+    </None>
+    <None Include="..\..\scripts\unix_prepare_host.sh">
+      <Filter>repo_files\scripts</Filter>
+    </None>
+    <None Include="..\..\scripts\unix_prepare_repository.sh">
+      <Filter>repo_files\scripts</Filter>
+    </None>
+    <None Include="..\..\scripts\unix_run_tests.sh">
+      <Filter>repo_files\scripts</Filter>
+    </None>
+    <None Include="..\..\scripts\windows_build_all.bat">
+      <Filter>repo_files\scripts</Filter>
+    </None>
+    <None Include="..\..\scripts\windows_prepare_host.bat">
+      <Filter>repo_files\scripts</Filter>
+    </None>
+    <None Include="..\..\scripts\windows_prepare_repository.bat">
+      <Filter>repo_files\scripts</Filter>
+    </None>
+    <None Include="..\..\scripts\windows_run_tests.bat">
+      <Filter>repo_files\scripts</Filter>
+    </None>
+    <None Include="..\..\scripts\windows_set_vs_toolset_and_run.bat">
+      <Filter>repo_files\scripts</Filter>
     </None>
   </ItemGroup>
 </Project>

@@ -35,6 +35,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\contrib\cinternal\src\core\cinternal_core_logger.c" />
+    <ClCompile Include="..\..\..\contrib\cinternal\src\core\cinternal_core_unit_test_checks.c" />
+    <ClCompile Include="..\..\..\contrib\cinternal\src\core\cinternal_core_unit_test_main.c" />
     <ClCompile Include="..\..\..\src\core\cpputils_sockets_core_tcp_server.cpp" />
     <ClCompile Include="..\..\..\src\core\cpputils_sockets_core_tcp_socket.cpp" />
     <ClCompile Include="..\..\..\src\tests\unit_test\0000_initial.cpp" />
@@ -44,6 +47,11 @@
     <ClInclude Include="..\..\..\include\cpputils\sockets\socket_data.hpp" />
     <ClInclude Include="..\..\..\include\cpputils\sockets\tcp_server.hpp" />
     <ClInclude Include="..\..\..\include\cpputils\sockets\tcp_socket.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cppsockets_unit_test.pro" />
+    <None Include="cppsockets_unit_test.unix.Makefile" />
+    <None Include="cppsockets_unit_test.windows.Makefile" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <GoogleTestConfiguration Condition="'$(Configuration)'=='Debug'">d</GoogleTestConfiguration>
