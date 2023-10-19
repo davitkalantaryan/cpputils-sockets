@@ -144,15 +144,22 @@ tcp_server_p::tcp_server_p()
 }
 
 
+#ifndef _WIN32
+static void SigHandlerFunction(int a_signo){
+    CPPUTILS_STATIC_CAST(void,a_signo);
+}
+#endif
+
+
 void tcp_server_p::ServerThreadFunction(int a_nPort, int a_lnTimeoutMs, bool a_bOnlyLocalHost, bool a_bReuse)
 {
 
 #ifndef _WIN32
 	struct sigaction newAction;
-	newAction.sa_flags = SA_SIGINFO;
+	newAction.sa_flags = 0;
 	sigemptyset(&newAction.sa_mask);
 	newAction.sa_restorer = nullptr;
-	newAction.sa_sigaction = SigActionFunction;
+	newAction.sa_handler = &SigHandlerFunction;
 	sigaction(SIGPIPE, &newAction, nullptr);
 #endif
 
@@ -250,7 +257,7 @@ void tcp_server_p::ServerAccept(int a_lnTimeoutMs, struct sockaddr_in* a_bufForR
 		break;
 	}  //  switch (rtn) {
 
-	int addr_len = sizeof(struct sockaddr_in);
+	cpputils_socklen_t addr_len = sizeof(struct sockaddr_in);
 	const struct SysSocket clientSocket = { accept(this->serv, (struct sockaddr*)a_bufForRemAddress, &addr_len) };
 
 	if (CHECK_FOR_SOCK_INVALID(clientSocket.sock)){
