@@ -64,6 +64,7 @@
 !/prj/*/*_vs/*.props
 #
 !/prj/*/*_mkfl/*Makefile*
+!/prj/*/*_mkfl/raw
 #
 !/prj/*/*_mult/*Makefile
 !/prj/*/*_mult/*.sln

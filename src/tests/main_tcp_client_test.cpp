@@ -10,11 +10,17 @@
 #include <cpputils/sockets/tcp_socket.hpp>
 #include <stdio.h>
 
-int main(void)
+int main(int a_argc, char* a_argv[])
 {
+    const char* cpcServerHost = "localhost";
 	char vcBuffer[128];
 	cpputils::sockets::tcp_socket aSocket;
-	if (aSocket.Connect("localhost", 9030, 1000)) {
+    
+    if(a_argc>1){
+        cpcServerHost = a_argv[1];
+    }
+    
+	if (aSocket.Connect(cpcServerHost, 9030, 1000)) {
 		fprintf(stderr, "unable to connect\n");
 		return 1;
 	}

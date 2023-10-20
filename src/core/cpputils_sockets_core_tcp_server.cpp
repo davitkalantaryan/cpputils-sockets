@@ -8,8 +8,9 @@
 
 #include <cpputils/sockets/tcp_server.hpp>
 #include "cpputils_sockets_core_tcp_socket_p.hpp"
-#include <cpputils/unnamedsemaphore.hpp>
-#include <cinternal/flagshelper02.h>
+#define cinternal_unnamed_sema_wait_ms_needed
+#include <cinternal/unnamed_semaphore.h>
+#include <cinternal/bistateflags.h>
 #include <thread>
 #include <string.h>
 #include <stdlib.h>
@@ -29,8 +30,8 @@ public:
 	tcp_server::TypeExtraCleanClbk ecClbk;
 	socket_t					serv;
 	::std::thread				server_thread;
-	UnnamedSemaphore			sema;
-	CPPUTILS_FLAGS_UN(threadStarted,shouldRun,runs, hasError)	flags;
+	cinternal_unnamed_sema_t	m_sema;
+	CPPUTILS_BISTATE_FLAGS_UN(threadStarted,shouldRun,runs, hasError)	flags;
 
 public:
 	tcp_server_p();
@@ -107,7 +108,8 @@ int tcp_server::StartServer(
 	});
 
 	m_serv_data_p->flags.wr.threadStarted = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
-	m_serv_data_p->sema.Wait();
+	//m_serv_data_p->sema.Wait();
+	cinternal_unnamed_sema_wait(&(m_serv_data_p->m_sema));
 
 	return m_serv_data_p->flags.rd.runs_true ? 0 : (-1);
 }
@@ -142,28 +144,38 @@ tcp_server_p::tcp_server_p()
 }
 
 
+#ifndef _WIN32
+static void SigHandlerFunction(int a_signo){
+    CPPUTILS_STATIC_CAST(void,a_signo);
+}
+#endif
+
+
 void tcp_server_p::ServerThreadFunction(int a_nPort, int a_lnTimeoutMs, bool a_bOnlyLocalHost, bool a_bReuse)
 {
 
 #ifndef _WIN32
 	struct sigaction newAction;
-	newAction.sa_flags = SA_SIGINFO;
+    memset(&newAction,0,sizeof(struct sigaction));
+	//newAction.sa_flags = 0; // because of memset
 	sigemptyset(&newAction.sa_mask);
-	newAction.sa_restorer = nullptr;
-	newAction.sa_sigaction = SigActionFunction;
+	//newAction.sa_restorer = nullptr;  // because of memset
+	newAction.sa_handler = &SigHandlerFunction;
 	sigaction(SIGPIPE, &newAction, nullptr);
 #endif
 
 	if (CreateServer(a_nPort, a_bOnlyLocalHost, a_bReuse)) {
 		this->flags.wr.hasError = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
 		this->flags.wr.runs = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
-		this->sema.Post();
+		//this->sema.Post();
+		cinternal_unnamed_sema_post(&m_sema);
 		return;
 	}
 
 	this->flags.wr.hasError = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
 	this->flags.wr.runs = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
-	this->sema.Post();
+	//this->sema.Post();
+	cinternal_unnamed_sema_post(&m_sema);
 
 	RunServer(a_lnTimeoutMs);
 
@@ -246,7 +258,7 @@ void tcp_server_p::ServerAccept(int a_lnTimeoutMs, struct sockaddr_in* a_bufForR
 		break;
 	}  //  switch (rtn) {
 
-	int addr_len = sizeof(struct sockaddr_in);
+	cpputils_socklen_t addr_len = sizeof(struct sockaddr_in);
 	const struct SysSocket clientSocket = { accept(this->serv, (struct sockaddr*)a_bufForRemAddress, &addr_len) };
 
 	if (CHECK_FOR_SOCK_INVALID(clientSocket.sock)){

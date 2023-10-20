@@ -1,0 +1,59 @@
+#
+# file:		test_pull_to_master.yml
+#
+
+name: test_pull_to_master
+on:
+    pull_request:
+        branches: [ master ]
+
+jobs:
+
+    # matrix for debian linuxes (for now ubuntu-18.04 and ubuntu-20.04)
+    unixes:
+        runs-on: ${{ matrix.os }}
+        strategy:
+          matrix:
+            os: [ubuntu-20.04, ubuntu-22.04, macos-latest]
+        steps:
+            - uses: actions/checkout@v3
+           
+            - name: Preparing host for ${{ matrix.os }}
+              run: ./scripts/unix_prepare_host.sh
+
+            - name: Preparing repository for ${{ matrix.os }}
+              run: ./scripts/unix_prepare_repository.sh
+
+            - name: Compiling for ${{ matrix.os }}
+              run: ./scripts/unix_build_all.sh
+              #working-directory: blabla
+
+            - name: running unittest for ${{ matrix.os }}
+              run: ./scripts/unix_run_tests.sh
+            
+    # This is for windows
+    windows:
+        runs-on: windows-latest
+        steps:
+            - uses: actions/checkout@v3
+
+            - name: Setup MSBuild.exe
+              uses: microsoft/setup-msbuild@v1.1
+
+            - name: Setup developer command prompt
+              uses: ilammy/msvc-dev-cmd@v1
+              #with:
+              #    toolset: v142
+
+            - name: Preparing windows host
+              run: cmd /C "call .\scripts\windows_prepare_host.bat"
+
+            - name: Preparing windows repository
+              run: cmd /C "call .\scripts\windows_prepare_repository.bat"
+
+            - name: Compiling for windows
+              run: cmd /C "call .\scripts\windows_build_all.bat"
+              #working-directory: blabla
+
+            - name: running tests for windows
+              run: cmd /C "call .\scripts\windows_run_tests.bat"

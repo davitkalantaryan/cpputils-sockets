@@ -21,9 +21,22 @@
 #define SWITCH_SCHEDULING(_t_)				SleepEx((_t_),TRUE)
 #define CHECK_FOR_SOCK_INVALID(_a_socket_)	((_a_socket_) == INVALID_SOCKET)
 #define CHECK_FOR_SOCK_ERROR(_a_return_)	((_a_return_) == SOCKET_ERROR)
+typedef int cpputils_socklen_t;
 #else
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/ip.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <signal.h>
 #define CPPUTILS_SOCKS_CLOSE_SOCK			(-1)
 #define closesocketn						close
+#ifndef SOCKET_ERROR
+#define SOCKET_ERROR (-1)
+#endif
 #define SWITCH_SCHEDULING(_t_)				usleep(900*(_t_))
 #define CHECK_FOR_SOCK_INVALID(_a_socket_)	((_a_socket_) < 0)
 #define CHECK_FOR_SOCK_ERROR(_a_return_)	((_a_return_) < 0)
@@ -37,6 +50,7 @@
 #else
 #define	SOCKET_INPROGRESS(e)	(e == EINPROGRESS)
 #endif
+typedef socklen_t cpputils_socklen_t;
 #endif
 
 #include <cinternal/undisable_compiler_warnings.h>
