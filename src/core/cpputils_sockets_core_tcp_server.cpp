@@ -115,7 +115,6 @@ int tcp_server::StartServer(
 	//m_serv_data_p->sema.Wait();
 	cinternal_unnamed_sema_wait(&(m_serv_data_p->sema_for_start));
     cinternal_unnamed_sema_destroy(&(m_serv_data_p->sema_for_start));
-    m_serv_data_p->sema_for_start = CPPUTILS_NULL;
 
 	return m_serv_data_p->flags.rd.runs_true ? 0 : (-1);
 }
@@ -147,7 +146,6 @@ tcp_server_p::tcp_server_p()
 	this->flags.wr_all = CPPUTILS_BISTATE_MAKE_ALL_BITS_FALSE;
 	this->clbk = tcp_server::s_defClbk;
 	this->serv = CPPUTILS_SOCKS_CLOSE_SOCK;
-    this->sema_for_start = CPPUTILS_NULL;
 }
 
 
