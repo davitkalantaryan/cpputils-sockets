@@ -19,6 +19,7 @@ class CPPUTILS_DLL_PRIVATE tcp_socket_p
 {
 public:
 	socket_t	sock;
+    bool        isBlocking;
 };
 
 

@@ -34,7 +34,8 @@ public:
 	void Close();
 	void MakeSocketBlocking();
 	void MakeSocketNonBlocking();
-	int  receive(void* a_pBuffer, size_t a_nSize)const;
+	int  receiveAll(void* a_pBuffer, size_t a_nSize)const;
+    int  receiveSngl(void* a_pBuffer, size_t a_nSize)const;
 	int  Send(const void* a_cpBuffer, size_t a_nSize);
 	int  SendSimple(const void* a_cpBuffer, size_t a_nSize);
 	int  SetTimeout(int a_nTimeoutMs);
