@@ -40,6 +40,9 @@ public:
 	int  SendSimple(const void* a_cpBuffer, size_t a_nSize);
 	int  SetTimeout(int a_nTimeoutMs);
 	int  waitForReadData(int a_timeoutMs)const;  // 1,2,3 => data, 0 => timeout, -1 => error, socket should be closed
+    void GetSysSocketAndReset(SysSocket* CPPUTILS_ARG_NN a_pSysSocket);
+    void getSysSocket(SysSocket* CPPUTILS_ARG_NN a_pSysSocket)const;
+    void Reset();
 
 protected:
 	tcp_socket_p* m_sock_data_p;

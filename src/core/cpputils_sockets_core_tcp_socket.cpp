@@ -157,7 +157,9 @@ void tcp_socket::MakeSocketBlocking()
 		status &= ~O_NONBLOCK;
 		fcntl(m_sock_data_p->sock, F_SETFL, status);
 	}
-#endif 
+#endif
+    
+    m_sock_data_p->isBlocking = true;
 }
 
 
@@ -271,6 +273,25 @@ int tcp_socket::SetTimeout(int a_nTimeoutMs)
 int tcp_socket::waitForReadData(int a_timeoutMs)const
 {
 	return WaitForDataOnSocketInline(m_sock_data_p->sock, a_timeoutMs, DeskType::read);
+}
+
+
+void tcp_socket::GetSysSocketAndReset(SysSocket* CPPUTILS_ARG_NN a_pSysSocket)
+{
+    a_pSysSocket->sock = m_sock_data_p->sock;
+    m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
+}
+
+
+void tcp_socket::getSysSocket(SysSocket* CPPUTILS_ARG_NN a_pSysSocket)const
+{
+    a_pSysSocket->sock = m_sock_data_p->sock;
+}
+
+
+void tcp_socket::Reset()
+{
+    m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
 }
 
 
