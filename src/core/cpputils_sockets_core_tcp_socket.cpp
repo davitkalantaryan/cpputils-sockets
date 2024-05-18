@@ -24,6 +24,7 @@ tcp_socket::tcp_socket()
 	m_sock_data_p(new tcp_socket_p())
 {
 	m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
+    m_sock_data_p->isBlocking = false;
 }
 
 
@@ -32,6 +33,7 @@ tcp_socket::tcp_socket(const SysSocket* a_createdSocket)
 	m_sock_data_p(new tcp_socket_p())
 {
 	m_sock_data_p->sock = a_createdSocket->sock;
+    MakeSocketBlocking();
 }
 
 
@@ -41,6 +43,7 @@ tcp_socket::tcp_socket(tcp_socket&& a_mM) noexcept
 {
 	a_mM.m_sock_data_p = new tcp_socket_p();
 	a_mM.m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
+    a_mM.m_sock_data_p->isBlocking = false;
 }
 
 
@@ -154,19 +157,47 @@ void tcp_socket::MakeSocketBlocking()
 		status &= ~O_NONBLOCK;
 		fcntl(m_sock_data_p->sock, F_SETFL, status);
 	}
-#endif 
+#endif
+    
+    m_sock_data_p->isBlocking = true;
 }
 
 
 void tcp_socket::MakeSocketNonBlocking()
 {
 	MakeSocketNonBlockingInline(m_sock_data_p->sock);
+    m_sock_data_p->isBlocking = false;
 }
 
 
-int tcp_socket::receive(void* a_pBuffer, size_t a_nSize)const
+int tcp_socket::receiveAll(void* a_pBuffer, size_t a_nSize)const
 {
-	return (int)recv(m_sock_data_p->sock,(char*)a_pBuffer,(sndrcv_inp_cnt)a_nSize, MSG_WAITALL);
+    if(m_sock_data_p->isBlocking){
+        return (int)recv(m_sock_data_p->sock,(char*)a_pBuffer,(sndrcv_inp_cnt)a_nSize, MSG_WAITALL);
+    }
+	
+    int nReceiveTotal = 0;
+    int nReceiveSingle;
+    int nRcvSize;
+    
+    while(nReceiveTotal<static_cast<int>(a_nSize)){
+        nRcvSize = static_cast<int>(a_nSize) - nReceiveTotal;
+        nReceiveSingle = (int)recv(m_sock_data_p->sock,(char*)a_pBuffer + nReceiveTotal,(sndrcv_inp_cnt)nRcvSize, 0);
+        if(nReceiveSingle<1){
+            if(SOCKET_INPROGRESS_INLINE()){
+                return nReceiveTotal;
+            }
+            return nReceiveSingle;
+        }  //  if(nReceiveSingle<1){
+    }  //  while(nReceiveTotal<static_cast<int>(a_nSize)){
+    
+    return nReceiveTotal;
+}
+
+
+int tcp_socket::receiveSngl(void* a_pBuffer, size_t a_nSize)const
+{
+    return (int)recv(m_sock_data_p->sock,(char*)a_pBuffer,(sndrcv_inp_cnt)a_nSize, 0);
 }
 
 
@@ -242,6 +273,25 @@ int tcp_socket::SetTimeout(int a_nTimeoutMs)
 int tcp_socket::waitForReadData(int a_timeoutMs)const
 {
 	return WaitForDataOnSocketInline(m_sock_data_p->sock, a_timeoutMs, DeskType::read);
+}
+
+
+void tcp_socket::GetSysSocketAndReset(SysSocket* CPPUTILS_ARG_NN a_pSysSocket)
+{
+    a_pSysSocket->sock = m_sock_data_p->sock;
+    m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
+}
+
+
+void tcp_socket::getSysSocket(SysSocket* CPPUTILS_ARG_NN a_pSysSocket)const
+{
+    a_pSysSocket->sock = m_sock_data_p->sock;
+}
+
+
+void tcp_socket::Reset()
+{
+    m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
 }
 
 

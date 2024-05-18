@@ -120,6 +120,12 @@ int tcp_server::StartServer(
 }
 
 
+void tcp_server::ChangeAcceptCallback(const TypeConnectClbk& a_clbk)
+{
+    m_serv_data_p->clbk = a_clbk;
+}
+
+
 void tcp_server::StoptServer()
 {
 	if (m_serv_data_p->flags.rd.shouldRun_false) {return;}

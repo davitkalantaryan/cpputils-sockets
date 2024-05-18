@@ -16,6 +16,7 @@
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 #include <Windows.h>
+#define CpputilsPoll                        WSAPoll
 #define CPPUTILS_SOCKS_CLOSE_SOCK			static_cast<SOCKET>(-1)
 #define closesocketn						closesocket
 #define SWITCH_SCHEDULING(_t_)				SleepEx((_t_),TRUE)
@@ -28,16 +29,18 @@ typedef int cpputils_socklen_t;
 #include <netinet/ip.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <poll.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <signal.h>
+#define CpputilsPoll                        poll
 #define CPPUTILS_SOCKS_CLOSE_SOCK			(-1)
 #define closesocketn						close
 #ifndef SOCKET_ERROR
 #define SOCKET_ERROR (-1)
 #endif
-#define SWITCH_SCHEDULING(_t_)				usleep(900*(_t_))
+#define SWITCH_SCHEDULING(_t_)				usleep(990*(_t_))
 #define CHECK_FOR_SOCK_INVALID(_a_socket_)	((_a_socket_) < 0)
 #define CHECK_FOR_SOCK_ERROR(_a_return_)	((_a_return_) < 0)
 // SOCKET_INPROGRESS

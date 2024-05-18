@@ -45,6 +45,7 @@ public:
 	int StartServer(
 						int a_nPort, const TypeConnectClbk& a_clbk= s_defClbk, int a_lnTimeoutMs = 1000,
 						bool a_bOnlyLocalHost=false, bool a_bReuse=true, const TypeExtraCleanClbk& a_ecclb = CPPUTILS_NULL);
+    void ChangeAcceptCallback(const TypeConnectClbk& a_clbk);
 	void StoptServer();  // stops and waits to stop
 
 protected:

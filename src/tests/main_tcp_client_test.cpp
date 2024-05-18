@@ -25,7 +25,7 @@ int main(int a_argc, char* a_argv[])
 		return 1;
 	}
 
-	const int nRcv = aSocket.receive(vcBuffer,4);
+	const int nRcv = aSocket.receiveAll(vcBuffer,4);
 	fprintf(stdout, "nRcv = %d\n",nRcv);
 
 	if (nRcv > 0) {

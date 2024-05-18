@@ -24,7 +24,7 @@ int main(void)
 		}
 		aSocket.ReplaceWithOtherSocket(&a_sock); // after this one can keep aNewSock permanently
 		aSocket.Send("ping",4);
-		const int nRcv = aSocket.receive(vcBuffer, 4);
+		const int nRcv = aSocket.receiveAll(vcBuffer, 4);
 		fprintf(stdout, "nRcv = %d\n", nRcv);
 
 		if (nRcv > 0) {
