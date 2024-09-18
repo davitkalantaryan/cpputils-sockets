@@ -9,6 +9,18 @@
 #include "cpputils_sockets_core_tcp_socket_p.hpp"
 #include <string.h>
 #include <stdlib.h>
+#include <cinternal/disable_compiler_warnings.h>
+#ifdef _WIN32
+#include <mstcpip.h>
+#else
+#include <netinet/tcp.h>
+#ifdef __linux__
+#define CPPUTILS_KEEPIDLE   TCP_KEEPIDLE
+#else
+#define CPPUTILS_KEEPIDLE   TCP_KEEPALIVE
+#endif
+#endif
+#include <cinternal/undisable_compiler_warnings.h>
 
 namespace cpputils { namespace sockets{
 
@@ -292,6 +304,39 @@ void tcp_socket::getSysSocket(SysSocket* CPPUTILS_ARG_NN a_pSysSocket)const
 void tcp_socket::Reset()
 {
     m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
+}
+
+/*
+ * 
+ * Before calling this api, make sure to call 
+ *   int optval = 1;
+ *   setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, (const char*)&optval, sizeof(optval));
+ * Above code is multiplatform
+ * 
+ */
+int tcp_socket::SetKeepAliveTimeouts(int a_idleTimeSec, int a_intervalSec, int a_maxProbes)
+{
+#ifdef _WIN32
+    DWORD bytes_returned = 0;
+    struct tcp_keepalive keepalive_settings;
+    keepalive_settings.onoff = ((a_idleTimeSec>=0) || (a_intervalSec>=0) || (a_maxProbes>=0)) ? ((ULONG)1) : ((ULONG)0);
+    keepalive_settings.keepalivetime = ((ULONG)a_idleTimeSec) * 1000;  // 1 hour = 3600 seconds = 3600000 ms
+    keepalive_settings.keepaliveinterval = ((ULONG)a_intervalSec) * 1000;  // 10 seconds = 10000 ms
+    return (int)WSAIoctl(m_sock_data_p->sock, SIO_KEEPALIVE_VALS, &keepalive_settings, sizeof(keepalive_settings), CPPUTILS_NULL, 0, &bytes_returned, CPPUTILS_NULL, CPPUTILS_NULL);
+#else
+    // Set the idle time (before the first keepalive probe is sent) 
+    if(setsockopt(m_sock_data_p->sock, IPPROTO_TCP, CPPUTILS_KEEPIDLE, &a_idleTimeSec, sizeof(a_idleTimeSec))){
+        return -1;
+    }
+    
+    // Set the interval between keepalive probes 
+    if(setsockopt(m_sock_data_p->sock, IPPROTO_TCP, TCP_KEEPINTVL, &a_intervalSec, sizeof(a_intervalSec))){
+        return -1;
+    }
+    
+    // Set the maximum number of keepalive probes before disconnecting
+    return setsockopt(m_sock_data_p->sock, IPPROTO_TCP, TCP_KEEPCNT, &a_maxProbes, sizeof(a_maxProbes));
+#endif
 }
 
 

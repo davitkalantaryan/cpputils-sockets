@@ -43,6 +43,7 @@ public:
     void GetSysSocketAndReset(SysSocket* CPPUTILS_ARG_NN a_pSysSocket);
     void getSysSocket(SysSocket* CPPUTILS_ARG_NN a_pSysSocket)const;
     void Reset();
+    int  SetKeepAliveTimeouts(int a_idleTimeSec, int a_intervalSec, int a_maxProbes);
 
 protected:
 	tcp_socket_p* m_sock_data_p;
