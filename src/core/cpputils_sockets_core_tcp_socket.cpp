@@ -9,6 +9,7 @@
 #include "cpputils_sockets_core_tcp_socket_p.hpp"
 #include <string.h>
 #include <stdlib.h>
+#include <cinternal/disable_compiler_warnings.h>
 #ifdef _WIN32
 #include <mstcpip.h>
 #else
@@ -19,6 +20,7 @@
 #define CPPUTILS_KEEPIDLE   TCP_KEEPALIVE
 #endif
 #endif
+#include <cinternal/undisable_compiler_warnings.h>
 
 namespace cpputils { namespace sockets{
 
@@ -317,9 +319,9 @@ int tcp_socket::SetKeepAliveTimeouts(int a_idleTimeSec, int a_intervalSec, int a
 #ifdef _WIN32
     DWORD bytes_returned = 0;
     struct tcp_keepalive keepalive_settings;
-    keepalive_settings.onoff = ((a_idleTimeSec>=0) || (a_intervalSec>=0) || (a_maxProbes>=0)) ? 1 : 0;
-    keepalive_settings.keepalivetime = a_idleTimeSec * 1000;  // 1 hour = 3600 seconds = 3600000 ms
-    keepalive_settings.keepaliveinterval = a_intervalSec * 1000;  // 10 seconds = 10000 ms
+    keepalive_settings.onoff = ((a_idleTimeSec>=0) || (a_intervalSec>=0) || (a_maxProbes>=0)) ? ((ULONG)1) : ((ULONG)0);
+    keepalive_settings.keepalivetime = ((ULONG)a_idleTimeSec) * 1000;  // 1 hour = 3600 seconds = 3600000 ms
+    keepalive_settings.keepaliveinterval = ((ULONG)a_intervalSec) * 1000;  // 10 seconds = 10000 ms
     return (int)WSAIoctl(m_sock_data_p->sock, SIO_KEEPALIVE_VALS, &keepalive_settings, sizeof(keepalive_settings), CPPUTILS_NULL, 0, &bytes_returned, CPPUTILS_NULL, CPPUTILS_NULL);
 #else
     // Set the idle time (before the first keepalive probe is sent) 
