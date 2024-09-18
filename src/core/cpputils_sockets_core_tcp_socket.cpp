@@ -13,6 +13,11 @@
 #include <mstcpip.h>
 #else
 #include <netinet/tcp.h>
+#ifdef __linux__
+#define CPPUTILS_KEEPIDLE   TCP_KEEPIDLE
+#else
+#define CPPUTILS_KEEPIDLE   TCP_KEEPALIVE
+#endif
 #endif
 
 namespace cpputils { namespace sockets{
@@ -318,7 +323,7 @@ int tcp_socket::SetKeepAliveTimeouts(int a_idleTimeSec, int a_intervalSec, int a
     return (int)WSAIoctl(m_sock_data_p->sock, SIO_KEEPALIVE_VALS, &keepalive_settings, sizeof(keepalive_settings), CPPUTILS_NULL, 0, &bytes_returned, CPPUTILS_NULL, CPPUTILS_NULL);
 #else
     // Set the idle time (before the first keepalive probe is sent) 
-    if(setsockopt(m_sock_data_p->sock, IPPROTO_TCP, TCP_KEEPIDLE, &a_idleTimeSec, sizeof(a_idleTimeSec))){
+    if(setsockopt(m_sock_data_p->sock, IPPROTO_TCP, CPPUTILS_KEEPIDLE, &a_idleTimeSec, sizeof(a_idleTimeSec))){
         return -1;
     }
     
