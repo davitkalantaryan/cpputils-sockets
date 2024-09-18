@@ -298,7 +298,14 @@ void tcp_socket::Reset()
     m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
 }
 
-
+/*
+ * 
+ * Before calling this api, make sure to call 
+ *   int optval = 1;
+ *   setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, (const char*)&optval, sizeof(optval));
+ * Above code is multiplatform
+ * 
+ */
 int tcp_socket::SetKeepAliveTimeouts(int a_idleTimeSec, int a_intervalSec, int a_maxProbes)
 {
 #ifdef _WIN32
