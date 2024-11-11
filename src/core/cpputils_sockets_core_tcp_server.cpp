@@ -133,14 +133,18 @@ void tcp_server::StoptServer()
 	m_serv_data_p->flags.wr.shouldRun = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
 	if (m_serv_data_p->flags.rd.threadStarted_false) { return; }
 
-	if (m_serv_data_p->server_thread.get_id() == ::std::this_thread::get_id()) { return; }
+	if (m_serv_data_p->server_thread.get_id() == ::std::this_thread::get_id()) { 
+        m_serv_data_p->server_thread.detach();
+        return; 
+    }
 
 #ifdef _WIN32
 	QueueUserAPC([](_In_ ULONG_PTR) {}, m_serv_data_p->server_thread.native_handle(), 0);
 #else
 	pthread_kill(m_serv_data_p->server_thread.native_handle(), SIGPIPE);
 #endif
-
+    
+    m_serv_data_p->server_thread.join();
 }
 
 
