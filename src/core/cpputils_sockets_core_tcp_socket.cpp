@@ -340,6 +340,12 @@ int tcp_socket::SetKeepAliveTimeouts(int a_idleTimeSec, int a_intervalSec, int a
 }
 
 
+bool tcp_socket::isValid()const
+{
+    return m_sock_data_p->sock != CPPUTILS_SOCKS_CLOSE_SOCK;
+}
+
+
 /*--------------------------------------------------------------------------------------------------------------*/
 
 CSOCKETS_EXPORT const char* GetIPV4Address(const sockaddr_in* CPPUTILS_ARG_NN a_addr)
