@@ -17,9 +17,9 @@ isEmpty(cpputilsSocketsFlagsAndSysCommonIncluded){
 
     isEmpty(artifactRoot) {
         artifactRoot = $$(artifactRoot)
-	        isEmpty(artifactRoot) {
-		        artifactRoot = $${cpputilsSocketsRepoRoot}
-		}
+        isEmpty(artifactRoot) {
+            artifactRoot = $${cpputilsSocketsRepoRoot}
+        }
     }
 
     include("$${cpputilsSocketsRepoRoot}/contrib/cinternal/prj/common/common_qt/flagsandsys_common.pri")
