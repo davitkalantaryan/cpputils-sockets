@@ -9,7 +9,9 @@
 #pragma once
 
 #include <cpputils/sockets/export_symbols.h>
+#include <cinternal/disable_compiler_warnings.h>
 #include <stddef.h>
+#include <cinternal/undisable_compiler_warnings.h>
 
 struct sockaddr_in;
 
@@ -44,6 +46,7 @@ public:
     void getSysSocket(SysSocket* CPPUTILS_ARG_NN a_pSysSocket)const;
     void Reset();
     int  SetKeepAliveTimeouts(int a_idleTimeSec, int a_intervalSec, int a_maxProbes);
+    bool isValid()const;
 
 protected:
 	tcp_socket_p* m_sock_data_p;

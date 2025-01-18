@@ -7,9 +7,9 @@
 //
 
 #include "cpputils_sockets_core_tcp_socket_p.hpp"
+#include <cinternal/disable_compiler_warnings.h>
 #include <string.h>
 #include <stdlib.h>
-#include <cinternal/disable_compiler_warnings.h>
 #ifdef _WIN32
 #include <mstcpip.h>
 #else
@@ -337,6 +337,12 @@ int tcp_socket::SetKeepAliveTimeouts(int a_idleTimeSec, int a_intervalSec, int a
     // Set the maximum number of keepalive probes before disconnecting
     return setsockopt(m_sock_data_p->sock, IPPROTO_TCP, TCP_KEEPCNT, &a_maxProbes, sizeof(a_maxProbes));
 #endif
+}
+
+
+bool tcp_socket::isValid()const
+{
+    return m_sock_data_p->sock != CPPUTILS_SOCKS_CLOSE_SOCK;
 }
 
 

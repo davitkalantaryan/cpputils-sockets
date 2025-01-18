@@ -11,15 +11,18 @@
 #define cinternal_unnamed_sema_wait_ms_needed
 #include <cinternal/unnamed_semaphore.h>
 #include <cinternal/bistateflags.h>
+#include <cinternal/disable_compiler_warnings.h>
 #include <thread>
 #include <string.h>
 #include <stdlib.h>
+#include <cinternal/undisable_compiler_warnings.h>
 
 namespace cpputils { namespace sockets{
 
 
 #ifdef _MSC_VER
 #pragma warning (disable:5039)
+#pragma warning (disable:4820)
 #endif
 
 
@@ -133,14 +136,18 @@ void tcp_server::StoptServer()
 	m_serv_data_p->flags.wr.shouldRun = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
 	if (m_serv_data_p->flags.rd.threadStarted_false) { return; }
 
-	if (m_serv_data_p->server_thread.get_id() == ::std::this_thread::get_id()) { return; }
+	if (m_serv_data_p->server_thread.get_id() == ::std::this_thread::get_id()) { 
+        m_serv_data_p->server_thread.detach();
+        return; 
+    }
 
 #ifdef _WIN32
 	QueueUserAPC([](_In_ ULONG_PTR) {}, m_serv_data_p->server_thread.native_handle(), 0);
 #else
 	pthread_kill(m_serv_data_p->server_thread.native_handle(), SIGPIPE);
 #endif
-
+    
+    m_serv_data_p->server_thread.join();
 }
 
 

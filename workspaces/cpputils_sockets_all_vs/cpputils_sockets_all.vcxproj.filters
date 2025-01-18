@@ -37,6 +37,12 @@
     <Filter Include="repo_files\scripts">
       <UniqueIdentifier>{ca244713-14b0-4c31-8fd1-480242acba63}</UniqueIdentifier>
     </Filter>
+    <Filter Include="repo_files\.github">
+      <UniqueIdentifier>{a7084b4b-7f6b-4a08-9d3b-d857e53618ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="repo_files\.github\workflows">
+      <UniqueIdentifier>{4ffe52e5-18e8-4cd7-8af7-b70e3a0c5841}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\utils\entr_cpputils_sockets_all.cpp">
@@ -121,6 +127,9 @@
     </None>
     <None Include="..\..\scripts\windows_set_vs_toolset_and_run.bat">
       <Filter>repo_files\scripts</Filter>
+    </None>
+    <None Include="..\..\.github\workflows\test_pull_to_master.yml">
+      <Filter>repo_files\.github\workflows</Filter>
     </None>
   </ItemGroup>
 </Project>

@@ -286,6 +286,12 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\src\tests\main_any_quick_test.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\include\cpputils\sockets\export_symbols.h" />
+    <ClInclude Include="..\..\..\include\cpputils\sockets\socket_data.hpp" />
+    <ClInclude Include="..\..\..\include\cpputils\sockets\tcp_server.hpp" />
+    <ClInclude Include="..\..\..\include\cpputils\sockets\tcp_socket.hpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
