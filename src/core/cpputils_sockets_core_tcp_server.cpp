@@ -11,15 +11,18 @@
 #define cinternal_unnamed_sema_wait_ms_needed
 #include <cinternal/unnamed_semaphore.h>
 #include <cinternal/bistateflags.h>
+#include <cinternal/disable_compiler_warnings.h>
 #include <thread>
 #include <string.h>
 #include <stdlib.h>
+#include <cinternal/undisable_compiler_warnings.h>
 
 namespace cpputils { namespace sockets{
 
 
 #ifdef _MSC_VER
 #pragma warning (disable:5039)
+#pragma warning (disable:4820)
 #endif
 
 

@@ -10,6 +10,7 @@
 
 #include <cpputils/sockets/export_symbols.h>
 #include <cpputils/sockets/tcp_socket.hpp>
+#include <cinternal/disable_compiler_warnings.h>
 #ifdef _MSC_VER
 #pragma warning (push)
 #pragma warning (disable:4365)
@@ -18,6 +19,7 @@
 #ifdef _MSC_VER
 #pragma warning (pop)
 #endif
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace cpputils { namespace sockets{

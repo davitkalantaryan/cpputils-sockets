@@ -7,9 +7,9 @@
 //
 
 #include "cpputils_sockets_core_tcp_socket_p.hpp"
+#include <cinternal/disable_compiler_warnings.h>
 #include <string.h>
 #include <stdlib.h>
-#include <cinternal/disable_compiler_warnings.h>
 #ifdef _WIN32
 #include <mstcpip.h>
 #else
