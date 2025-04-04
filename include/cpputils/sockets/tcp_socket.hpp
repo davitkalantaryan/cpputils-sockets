@@ -47,6 +47,9 @@ public:
     void Reset();
     int  SetKeepAliveTimeouts(int a_idleTimeSec, int a_intervalSec, int a_maxProbes);
     bool isValid()const;
+    bool isBlocking()const;
+    int timeoutMs()const;
+    int ReceiveNonBlockingWithTimeout(void* a_pBuffer, size_t a_nSize, int a_timeoutMs);
 
 protected:
 	tcp_socket_p* m_sock_data_p;
