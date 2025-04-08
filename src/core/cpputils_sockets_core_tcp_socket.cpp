@@ -405,7 +405,7 @@ int tcp_socket::ReceiveNonBlockingWithTimeout(void* a_pBuffer, size_t a_nSize, i
 	default:
 		break;
 	}  //  switch (rtn){
-    rtn = (int)recv(m_sock_data_p->sock,a_pBuffer,(sndrcv_inp_cnt)a_nSize,0);    
+    rtn = (int)recv(m_sock_data_p->sock,(char*)a_pBuffer,(sndrcv_inp_cnt)a_nSize,0);
     if(rtn<1){
         if(bMakeSocketBlocking){
             MakeSocketBlocking();
