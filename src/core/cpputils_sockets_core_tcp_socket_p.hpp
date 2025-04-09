@@ -19,8 +19,10 @@ class CPPUTILS_DLL_PRIVATE tcp_socket_p
 {
 public:
 	socket_t	sock;
+    int         timeoutMs;
+    int         reserved01;
     bool        isBlocking;
-    bool        reserved[(sizeof(void*) - sizeof(bool))/ sizeof(bool)];
+    bool        reserved02[(sizeof(void*) - sizeof(bool))/ sizeof(bool)];
 };
 
 

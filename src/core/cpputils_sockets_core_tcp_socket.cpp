@@ -10,6 +10,7 @@
 #include <cinternal/disable_compiler_warnings.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 #ifdef _WIN32
 #include <mstcpip.h>
 #else
@@ -37,6 +38,7 @@ tcp_socket::tcp_socket()
 {
 	m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
     m_sock_data_p->isBlocking = false;
+    m_sock_data_p->timeoutMs = -1;
 }
 
 
@@ -45,6 +47,7 @@ tcp_socket::tcp_socket(const SysSocket* a_createdSocket)
 	m_sock_data_p(new tcp_socket_p())
 {
 	m_sock_data_p->sock = a_createdSocket->sock;
+    m_sock_data_p->timeoutMs = -1;
     MakeSocketBlocking();
 }
 
@@ -56,6 +59,7 @@ tcp_socket::tcp_socket(tcp_socket&& a_mM) noexcept
 	a_mM.m_sock_data_p = new tcp_socket_p();
 	a_mM.m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
     a_mM.m_sock_data_p->isBlocking = false;
+    a_mM.m_sock_data_p->timeoutMs = -1;
 }
 
 
@@ -277,6 +281,8 @@ int tcp_socket::SetTimeout(int a_nTimeoutMs)
 #endif
 
 	if (setsockopt(m_sock_data_p->sock, SOL_SOCKET, SO_RCVTIMEO, pInput, nInputLen) < 0) { return -1; }
+    
+    m_sock_data_p->timeoutMs = a_nTimeoutMs;
 
 	return 0;
 }
@@ -343,6 +349,113 @@ int tcp_socket::SetKeepAliveTimeouts(int a_idleTimeSec, int a_intervalSec, int a
 bool tcp_socket::isValid()const
 {
     return m_sock_data_p->sock != CPPUTILS_SOCKS_CLOSE_SOCK;
+}
+
+
+bool tcp_socket::isBlocking()const
+{
+    return m_sock_data_p->isBlocking;
+}
+
+
+int tcp_socket::timeoutMs()const
+{
+    return m_sock_data_p->timeoutMs;
+}
+
+
+int tcp_socket::ReceiveNonBlockingWithTimeout(void* a_pBuffer, size_t a_nSize, int a_timeoutMs)
+{
+    if(a_timeoutMs<0){
+        return receiveAll(a_pBuffer,a_nSize);
+    }
+    
+    struct timeval  aTimeout;
+    fd_set rdfds, errfds;
+    const bool bMakeSocketBlocking = m_sock_data_p->isBlocking;
+    time_t currentTime;
+    currentTime = time(&currentTime);
+    const time_t finishEpoch = currentTime + static_cast<time_t>(a_timeoutMs);
+    const int maxsd = static_cast<int>(m_sock_data_p->sock) + 1;
+    int rtn;
+    
+    if(bMakeSocketBlocking){
+        MakeSocketNonBlocking();
+    }
+    
+    aTimeout.tv_sec = a_timeoutMs / 1000L;
+    aTimeout.tv_usec = (a_timeoutMs % 1000L) * 1000L;
+    FD_ZERO(&rdfds);
+    FD_ZERO(&errfds);
+    FD_SET(m_sock_data_p->sock, &rdfds);
+    FD_SET(m_sock_data_p->sock, &rdfds);
+    rtn = ::select(maxsd, &rdfds, nullptr, &errfds, &aTimeout);
+	switch (rtn) {
+	case 0:	/* time out */
+        if(bMakeSocketBlocking){
+            MakeSocketBlocking();
+        }
+		return 0;
+	case SOCKET_ERROR:
+        if(bMakeSocketBlocking){
+            MakeSocketBlocking();
+        }
+		if (errno == EINTR) {/*interrupted by signal*/return -1; }  // interrupt
+		return -1;  // select error
+	default:
+		break;
+	}  //  switch (rtn){
+    rtn = (int)recv(m_sock_data_p->sock,(char*)a_pBuffer,(sndrcv_inp_cnt)a_nSize,0);
+    if(rtn<1){
+        if(bMakeSocketBlocking){
+            MakeSocketBlocking();
+        }
+        return rtn;
+    }
+    size_t totalRcvCount = (size_t)rtn;
+    size_t nextRcvCount;
+    int timeoutMs;
+    
+    while((totalRcvCount<a_nSize) && (currentTime<finishEpoch)){
+        nextRcvCount = a_nSize - totalRcvCount;
+        timeoutMs = (int)(finishEpoch-currentTime);
+        aTimeout.tv_sec = timeoutMs / 1000L;
+        aTimeout.tv_usec = (timeoutMs % 1000L) * 1000L;
+        FD_ZERO(&rdfds);
+        FD_ZERO(&errfds);
+        FD_SET(m_sock_data_p->sock, &rdfds);
+        FD_SET(m_sock_data_p->sock, &rdfds);
+        rtn = ::select(maxsd, &rdfds, nullptr, &errfds, &aTimeout);
+        switch (rtn) {
+        case 0:	/* time out */
+            if(bMakeSocketBlocking){
+                MakeSocketBlocking();
+            }
+            return 0;
+        case SOCKET_ERROR:
+            if(bMakeSocketBlocking){
+                MakeSocketBlocking();
+            }
+            if (errno == EINTR) {/*interrupted by signal*/return -1; }  // interrupt
+            return -1;  // select error
+        default:
+            break;
+        }  //  switch (rtn){
+        rtn = (int)recv(m_sock_data_p->sock,((char*)a_pBuffer) + totalRcvCount,(sndrcv_inp_cnt)nextRcvCount,0);    
+        if(rtn<1){
+            if(bMakeSocketBlocking){
+                MakeSocketBlocking();
+            }
+            return rtn;
+        }
+        totalRcvCount += ((size_t)rtn);
+        currentTime = time(&currentTime);
+    }  //  while((totalRcvCount<a_nSize) && (currentTime<finishEpoch)){
+    
+    if(bMakeSocketBlocking){
+        MakeSocketBlocking();
+    }
+    return (int)totalRcvCount;
 }
 
 

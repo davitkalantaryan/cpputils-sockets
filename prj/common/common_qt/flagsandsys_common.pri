@@ -26,8 +26,12 @@ isEmpty(cpputilsSocketsFlagsAndSysCommonIncluded){
 
     INCLUDEPATH += $${cpputilsSocketsRepoRoot}/include
 
-    LIBS	+= -L$${cpputilsSocketsRepoRoot}/sys/$${CODENAME}/$$CONFIGURATION/lib
-    LIBS	+= -L$${cpputilsSocketsRepoRoot}/sys/$${CODENAME}/$$CONFIGURATION/tlib
+    exists($${cpputilsSocketsRepoRoot}/sys/$${CODENAME}/$$CONFIGURATION/lib) {
+        LIBS += -L$${cpputilsSocketsRepoRoot}/sys/$${CODENAME}/$$CONFIGURATION/lib
+    }
+    exists($${cpputilsSocketsRepoRoot}/sys/$${CODENAME}/$$CONFIGURATION/tlib) {
+        LIBS += -L$${cpputilsSocketsRepoRoot}/sys/$${CODENAME}/$$CONFIGURATION/tlib
+    }
 
     OTHER_FILES += $$files($${PWD}/../common_mkfl/*.Makefile,true)
 }
