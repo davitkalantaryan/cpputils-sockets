@@ -51,6 +51,7 @@ enum class DeskType {
 };
 
 
+#ifdef WaitForDataOnSocketInline_needed
 // 1,2,3 => data, 0 => timeout, -1 => error, socket should be closed
 static inline int WaitForDataOnSocketInline(socket_t a_sock, int a_timeoutMs, const DeskType& a_desc) {
 	fd_set* pRdFds = nullptr, * pWrFds = nullptr, * pErFds = nullptr;
@@ -140,6 +141,7 @@ static inline int WaitForDataOnSocketInline(socket_t a_sock, int a_timeoutMs, co
 	// if nCount == 0 , we have fatal error, else we have data
 	return nCount ? nCount : (-1);
 }
+#endif  //  #ifdef WaitForDataOnSocketInline_needed
 
 
 }}  //  namespace cpputils { namespace sockets{

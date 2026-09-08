@@ -6,7 +6,15 @@
 // created by:		Davit Kalantaryan (davit.kalantaryan@desy.de)
 //
 
+
+#include <cpputils/sockets/internal_header.h>
+
+#ifndef WaitForDataOnSocketInline_needed
+#define WaitForDataOnSocketInline_needed
+#endif
+
 #include "cpputils_sockets_core_tcp_socket_p.hpp"
+#include <cinternal/signals.h>
 #include <cinternal/disable_compiler_warnings.h>
 #include <string.h>
 #include <stdlib.h>
@@ -93,7 +101,7 @@ static bool SOCKET_INPROGRESS_INLINE(void) {
 int tcp_socket::Connect(const char* CPPUTILS_ARG_NN a_svrName, int a_port, int a_connectionTimeoutMs)
 {
 	if (m_sock_data_p->sock != CPPUTILS_SOCKS_CLOSE_SOCK) {
-		closesocketn(m_sock_data_p->sock);
+		CpputilsCloseSocket(m_sock_data_p->sock);
 	}
 
 	m_sock_data_p->sock = ::socket(AF_INET, SOCK_STREAM, 0);
@@ -115,13 +123,13 @@ int tcp_socket::Connect(const char* CPPUTILS_ARG_NN a_svrName, int a_port, int a
 	if ((ha = inet_addr(a_svrName)) == INADDR_NONE) {
 		struct hostent* hostent_ptr = gethostbyname(a_svrName);  // making DNS querry
 		if (!hostent_ptr) {
-			closesocketn(m_sock_data_p->sock);
+			CpputilsCloseSocket(m_sock_data_p->sock);
 			m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
 			return -1;
 		}
 		a_svrName = inet_ntoa(*(struct in_addr*)hostent_ptr->h_addr_list[0]);
 		if ((ha = inet_addr(a_svrName)) == INADDR_NONE) {
-			closesocketn(m_sock_data_p->sock);
+			CpputilsCloseSocket(m_sock_data_p->sock);
 			m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
 			return -1;
 		}
@@ -147,7 +155,7 @@ int tcp_socket::Connect(const char* CPPUTILS_ARG_NN a_svrName, int a_port, int a
 		}
 	}  //  if (rtn) {
 
-	closesocketn(m_sock_data_p->sock);
+	CpputilsCloseSocket(m_sock_data_p->sock);
 	m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
 	return -1;  // most probably timeout
 }
@@ -156,7 +164,7 @@ int tcp_socket::Connect(const char* CPPUTILS_ARG_NN a_svrName, int a_port, int a
 void tcp_socket::Close()
 {
 	if (m_sock_data_p->sock != CPPUTILS_SOCKS_CLOSE_SOCK) {
-		closesocketn(m_sock_data_p->sock);
+		CpputilsCloseSocket(m_sock_data_p->sock);
 		m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
 	}
 }
@@ -232,7 +240,7 @@ int tcp_socket::Send(const void* a_cpBuffer, size_t a_nSize)
 		n = ::send(m_sock_data_p->sock, cp, (sndrcv_inp_cnt)len_to_write, 0);
 		if (CHECK_FOR_SOCK_ERROR(n)) {
 			if (SOCKET_INPROGRESS_INLINE()) {
-				if (i < MAX_NUMBER_OF_ITERS) { SWITCH_SCHEDULING(1); continue; }
+				if (i < MAX_NUMBER_OF_ITERS) { CinternalSleepInterruptableMs(1); continue; }
 				else { return -1; }  // timeout
 			}
 			else { return -1; }  // send error

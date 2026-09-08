@@ -18,11 +18,9 @@
 #include <Windows.h>
 #define CpputilsPoll                        WSAPoll
 #define CPPUTILS_SOCKS_CLOSE_SOCK			static_cast<SOCKET>(-1)
-#define closesocketn						closesocket
-#define SWITCH_SCHEDULING(_t_)				SleepEx((_t_),TRUE)
+#define CpputilsCloseSocket     			closesocket
 #define CHECK_FOR_SOCK_INVALID(_a_socket_)	((_a_socket_) == INVALID_SOCKET)
 #define CHECK_FOR_SOCK_ERROR(_a_return_)	((_a_return_) == SOCKET_ERROR)
-typedef int cpputils_socklen_t;
 #else
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -36,11 +34,10 @@ typedef int cpputils_socklen_t;
 #include <signal.h>
 #define CpputilsPoll                        poll
 #define CPPUTILS_SOCKS_CLOSE_SOCK			(-1)
-#define closesocketn						close
+#define CpputilsCloseSocket 				close
 #ifndef SOCKET_ERROR
 #define SOCKET_ERROR (-1)
 #endif
-#define SWITCH_SCHEDULING(_t_)				usleep(990*(_t_))
 #define CHECK_FOR_SOCK_INVALID(_a_socket_)	((_a_socket_) < 0)
 #define CHECK_FOR_SOCK_ERROR(_a_return_)	((_a_return_) < 0)
 // SOCKET_INPROGRESS
@@ -53,7 +50,6 @@ typedef int cpputils_socklen_t;
 #else
 #define	SOCKET_INPROGRESS(e)	(e == EINPROGRESS)
 #endif
-typedef socklen_t cpputils_socklen_t;
 #endif
 
 #include <cinternal/undisable_compiler_warnings.h>
@@ -64,15 +60,26 @@ namespace cpputils { namespace sockets{
 typedef SOCKET		socket_t;
 typedef int			sndrcv_inp_cnt;
 typedef int			sndrcv_ret_cnt;
+typedef int			cpputils_socklen_t;
+typedef ULONG		cpputils_poll_arg2;
 #else
 typedef int			socket_t;
 typedef size_t		sndrcv_inp_cnt;
 typedef ssize_t		sndrcv_ret_cnt;
+typedef socklen_t   cpputils_socklen_t;
+typedef nfds_t 		cpputils_poll_arg2;
 #endif
 
 
 struct SysSocket {
 	socket_t  sock;
 };
+
+
+struct StopperData {
+    SysSocket   stp;
+    SysSocket   pol;
+};
+
 
 }}  //  namespace cpputils { namespace sockets{
