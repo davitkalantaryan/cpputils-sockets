@@ -507,7 +507,7 @@ int tcp_data_base_server_p::GetStopperData(StopperData* CPPUTILS_ARG_NN a_pStpDa
         return -1;
     }
 
-    bool bSemaphoreExists = false;
+    cinternal_unnamed_sema_t* sema_for_to_finish_p = nullptr;
     cinternal_unnamed_sema_t sema_for_to_finish;
     if (this->flags.rd.serverRunning_true) {
         const int64_t currentThreadTid = CinternalGetCurrentTid();
@@ -516,14 +516,14 @@ int tcp_data_base_server_p::GetStopperData(StopperData* CPPUTILS_ARG_NN a_pStpDa
                 // log on semaphore creation failure
                 return -1;
             }
-            bSemaphoreExists = true;
+            sema_for_to_finish_p = &sema_for_to_finish;
         }
     }  //  if (this->flags.rd.serverRunning_false) {
 
     const int cnPort = ntohs(this->servAddr.sin_port);
     const uint64_t inShouldRun = this->flags.wr.shouldRun;
     this->flags.wr.shouldRun = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
-    ::std::thread* const pTmpThread = new ::std::thread([a_pStpData, a_count,cnPort,&sema_for_to_finish,&bSemaphoreExists]() {
+    ::std::thread* const pTmpThread = new ::std::thread([a_pStpData, a_count,cnPort,&sema_for_to_finish_p]() {
         tcp_socket pollSocket;
         int rtn = -1;
         for (size_t ind(0); ind < a_count; ) {
@@ -543,8 +543,8 @@ int tcp_data_base_server_p::GetStopperData(StopperData* CPPUTILS_ARG_NN a_pStpDa
             pollSocket.GetSysSocketAndReset(&aSysSock);
             a_pStpData[ind++].stp.sock = aSysSock.sock;
         }  //  while (rtn) {
-        if (bSemaphoreExists) {
-            cinternal_unnamed_sema_post(&sema_for_to_finish);
+        if (sema_for_to_finish_p) {
+            cinternal_unnamed_sema_post(sema_for_to_finish_p);
         }
     });  //  ::std::thread tmpThread([&stpSocket,cnPort]() {
     
@@ -587,9 +587,9 @@ int tcp_data_base_server_p::GetStopperData(StopperData* CPPUTILS_ARG_NN a_pStpDa
         return 0;
     }  //  if (this->flags.rd.serverRunning_false) {
 
-    if (bSemaphoreExists) {
-        cinternal_unnamed_sema_wait(&sema_for_to_finish);
-        cinternal_unnamed_sema_destroy(&sema_for_to_finish);
+    if (sema_for_to_finish_p) {
+        cinternal_unnamed_sema_wait(sema_for_to_finish_p);
+        cinternal_unnamed_sema_destroy(sema_for_to_finish_p);
     }
 
     delete clbkExtra_p;
