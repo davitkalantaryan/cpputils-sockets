@@ -363,11 +363,11 @@ inline void tcp_data_base_server_p::ServerAcceptInline(struct sockaddr_in* a_buf
     vPollFd[0].events = POLLIN | POLLRDNORM | POLLRDBAND;
     vPollFd[0].revents = 0;
 
+    vPollFd[1].revents = 0; // we will analyze this, and if POLLIN, we have to read it to prevent socket kernel buffer filling
     if ((this->stpData.pol.sock) != CPPUTILS_SOCKS_CLOSE_SOCK) {
         nPollFdCount = 2;
         vPollFd[1].fd = this->stpData.pol.sock;
         vPollFd[1].events = POLLIN | POLLRDNORM | POLLRDBAND;
-        vPollFd[1].revents = 0;
     }
 
     const int pollRes = CpputilsPoll(vPollFd, nPollFdCount, -1);
@@ -376,6 +376,12 @@ inline void tcp_data_base_server_p::ServerAcceptInline(struct sockaddr_in* a_buf
     }  //  if (this->flags.rd.shouldRun_true) {
     
     if (pollRes > 0) {
+        if (vPollFd[1].revents & POLLIN) {
+            char vcBuff[CPPUTILS_SOCKS_INTERNAL_STP_SRV_LEN + 10];
+            tcp_socket  aSock(&this->stpData.pol);
+            aSock.receiveAll(vcBuff, CPPUTILS_SOCKS_INTERNAL_STP_SRV_LEN);
+            aSock.Reset();
+        }
         if (vPollFd[0].revents & POLLIN) {
             cpputils_socklen_t addr_len = sizeof(struct sockaddr_in);
             const socket_t clntSockDescrpt = accept(this->serv, (struct sockaddr*)a_bufForRemAddress, &addr_len);
