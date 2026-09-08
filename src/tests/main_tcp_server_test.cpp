@@ -23,36 +23,37 @@ int main(void)
     ::cpputils::sockets::StopperData stpData;
 
     ::cpputils::sockets::blocking_tcp_server aServerBlk;
-    //const int cnPort = aServerBlk.CreateBlockingServer();  // port = 0 will be used, so system will allocate one
-    const int cnPort = aServerBlk.CreateBlockingServer(9030);  // port = 0 will be used, so system will allocate one
+    const int cnPort = aServerBlk.CreateBlockingServer();  // port = 0 will be used, so system will allocate one
+    //const int cnPort = aServerBlk.CreateBlockingServer(9030);  // port = 0 will be used, so system will allocate one
     if (cnPort < 0) {
         fprintf(stderr, "negative port = %d\n", cnPort);
         return 1;
     }
     aServerBlk.GetStopperData(&stpData, 1);
-    printf("Sync Server port is %d.Going to infinite loop. If client connected, then server will be stopped\n", cnPort);
+    fprintf(stdout,"Sync Server port is %d. Going to infinite loop. If client connected, then server will be stopped\n", cnPort);
+    fflush(stdout);
     aServerBlk.RunBlockingServer([&aServerBlk](::cpputils::sockets::tcp_socket& a_sock, const sockaddr_in* CPPUTILS_ARG_NN a_addr) {
         ServerAcceptFunctionStatic(a_sock, a_addr);
-        aServerBlk.StoptServer();
+        aServerBlk.StopAndCleanServer();
     });
 
 	::cpputils::sockets::tcp_server aServer;
 	const int nRet = aServer.StartAsyncServerOnOtherThreadAndReturn(9030, [&aServer](::cpputils::sockets::tcp_socket& a_sock, const sockaddr_in* CPPUTILS_ARG_NN a_addr) {
         ServerAcceptFunctionStatic(a_sock,a_addr);
-        aServer.StoptServer();
+        aServer.StoptAndCleanServer();
 	});
 	if (nRet) {
 		fprintf(stderr, "Unable to start server!\n");
 		return 1;
 	}
 
-    printf("Async Server port is %d. Waiting 100s. If client connected, then server will be stopped\n",aServer.getPortNumber());
-
+    fprintf(stdout,"Async Server port is %d. Waiting 100s. If client connected, then server will be stopped\n",aServer.getPortNumber());
+    fflush(stdout);
     // we wait for 100 seconds, so one can connect to server by using telnet or netcat
     // also we stop the server from callback
-    aServerBlk.GetStopperData(&stpData, 1);
+    aServer.GetStopperData(&stpData, 1);
     CinternalSleepInterruptableMs(15000);
-	aServer.StoptServer(); // if callback stopped, then this call will not do anything
+    aServer.StoptAndCleanServer(); // if callback stopped, then this call will not do anything
 
 	return 0;
 }

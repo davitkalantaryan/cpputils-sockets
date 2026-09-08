@@ -20,10 +20,10 @@ int main(int a_argc, char* a_argv[])
         cpcServerHost = a_argv[1];
     }
     
-#if 1
+#if 0
     if (aSocket.Connect(cpcServerHost, 9030, 1000)) {
 #else
-	if (aSocket.Connect(cpcServerHost, 60398, 1000)) {
+    if (aSocket.Connect(cpcServerHost, 41837, 1000)) {
 #endif
 		fprintf(stderr, "unable to connect\n");
 		return 1;

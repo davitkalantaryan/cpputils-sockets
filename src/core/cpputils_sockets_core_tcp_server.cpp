@@ -47,7 +47,12 @@ namespace cpputils { namespace sockets{
 typedef void (*SignalHandlerPointer)(int);
 
 
-static void SigHandlerFunction(int a_signo) noexcept {CPPUTILS_STATIC_CAST(void, a_signo);}
+static void SigHandlerFunction(int a_signo) noexcept {
+#ifdef _WIN32
+    signal(a_signo, &SigHandlerFunction);
+#endif
+    CPPUTILS_STATIC_CAST(void, a_signo);
+}
 
 
 class CPPUTILS_DLL_PRIVATE tcp_data_base_server_p
@@ -63,7 +68,8 @@ public:
         tryingToCreate,
         serverRunning,
         isCreated,
-        hasError
+        hasError,
+        shouldCleanAfterRun
     )	flags;
 
 public:
@@ -71,12 +77,15 @@ public:
     int  CreateServer(int a_nPort, bool a_bOnlyLocalHost, bool a_bReuse);
     int  CreateServerRaw(int a_nPort, bool a_bOnlyLocalHost, bool a_bReuse) noexcept;
 	void RunServer();
-    int64_t StopServer() noexcept;
+    int64_t StopServerAndClean() noexcept;
     int getPortNumber() const noexcept;
     int GetStopperData(StopperData* CPPUTILS_ARG_NN a_pStpData, size_t a_count);
 private:
     inline void ServerAcceptInline(struct sockaddr_in* a_bufForRemAddress);
     inline void RunServerInline();
+    inline void CleanServerAfterRunInline();
+public:
+    inline int64_t StopServerInline() noexcept;
 private:
     tcp_data_base_server_p(const tcp_data_base_server_p&) = delete;
     tcp_data_base_server_p(tcp_data_base_server_p&&) = delete;
@@ -98,6 +107,46 @@ private:
     tcp_server_p& operator=(const tcp_server_p&) = delete;
     tcp_server_p& operator=(tcp_server_p&&) = delete;
 };
+
+
+/*--------------------------------------------------------------------------------------------------------------*/
+
+inline void tcp_data_base_server_p::CleanServerAfterRunInline()
+{
+    this->servAddr = {};
+    this->serverTid = 0;
+    CpputilsCloseSocket(this->serv);
+    this->serv = CPPUTILS_SOCKS_CLOSE_SOCK;
+    CpputilsCloseSocket(this->stpData.pol.sock);
+    this->stpData.pol.sock = CPPUTILS_SOCKS_CLOSE_SOCK;
+    this->flags.wr_all = CPPUTILS_BISTATE_MAKE_ALL_BITS_FALSE;
+}
+
+
+inline int64_t tcp_data_base_server_p::StopServerInline() noexcept
+{
+    const int64_t currentThreadTid = CinternalGetCurrentTid();
+    if (this->flags.rd.shouldRun_false) {
+        return currentThreadTid;
+    }
+    this->flags.wr.shouldRun = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
+
+    tcp_socket stpSockS(&this->stpData.stp);
+
+    if (currentThreadTid == (this->serverTid)) {
+        this->servAddr = {};
+        this->stpData.stp.sock = CPPUTILS_SOCKS_CLOSE_SOCK;
+        stpSockS.Close();
+        return currentThreadTid;
+    }
+
+    stpSockS.SendSimple(CPPUTILS_SOCKS_INTERNAL_STP_SRV, CPPUTILS_SOCKS_INTERNAL_STP_SRV_LEN);
+    while ((this->flags.rd.serverRunning_true) && (stpSockS.isValid())) {
+        CinternalSleepInterruptableMs(2);
+        stpSockS.SendSimple(CPPUTILS_SOCKS_INTERNAL_STP_SRV, CPPUTILS_SOCKS_INTERNAL_STP_SRV_LEN);
+    }
+    return currentThreadTid;
+}
 
 
 /*--------------------------------------------------------------------------------------------------------------*/
@@ -193,13 +242,13 @@ tcp_server& tcp_server::operator=(tcp_server&& a_mM) noexcept
 }
 
 
-void tcp_server::StoptServer()
+void tcp_server::StoptAndCleanServer()
 {
     if (m_serv_base_data_p->flags.rd.shouldRun_false) {
         return;
     }
     
-    if ((m_serv_base_data_p->serverTid) != m_serv_base_data_p->StopServer()) {
+    if ((m_serv_base_data_p->serverTid) != m_serv_base_data_p->StopServerAndClean()) {
         m_serv_async_data_p->server_thread.join();
     }
     else {
@@ -250,12 +299,23 @@ int tcp_server::StartAsyncServerOnOtherThreadAndReturn(
 
 // stops and waits to stop
 // can be stopped from accept callback, or from any thread
-void blocking_tcp_server::StoptServer()
+void blocking_tcp_server::StopAndCleanServer()
 {
     if (m_serv_base_data_p->flags.rd.shouldRun_false) {
         return;
     }
-    m_serv_base_data_p->StopServer();
+    m_serv_base_data_p->StopServerAndClean();
+}
+
+
+// stops and waits to stop
+// can be stopped from accept callback, or from any thread
+void blocking_tcp_server::StopButNotCleanServer()
+{
+    if (m_serv_base_data_p->flags.rd.shouldRun_false) {
+        return;
+    }
+    m_serv_base_data_p->StopServerInline();
 }
 
 
@@ -333,6 +393,18 @@ inline void tcp_data_base_server_p::ServerAcceptInline(struct sockaddr_in* a_buf
 
 void tcp_data_base_server_p::RunServerInline()
 {
+#ifdef _WIN32
+    const SignalHandlerPointer initialSigintPointer = signal(SIGINT, &SigHandlerFunction);
+#else
+    struct sigaction initialSigpipeAction;
+    struct sigaction newAction;
+    memset(&newAction, 0, sizeof(struct sigaction));
+    sigemptyset(&newAction.sa_mask);
+    newAction.sa_flags = 0;
+    newAction.sa_handler = &SigHandlerFunction;
+    sigaction(SIGPIPE, &newAction, &initialSigpipeAction);
+#endif
+
     this->serverTid = CinternalGetCurrentTid();
     sockaddr_in remoteAddress;
     this->flags.wr.serverRunning = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
@@ -341,6 +413,13 @@ void tcp_data_base_server_p::RunServerInline()
     }
     this->flags.wr.serverRunning = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
     this->serverTid = 0;
+
+#ifdef _WIN32
+    signal(SIGFPE, initialSigintPointer);
+#else
+    sigaction(SIGPIPE, &initialSigpipeAction, nullptr);
+#endif
+
 }
 
 
@@ -428,7 +507,8 @@ int tcp_data_base_server_p::GetStopperData(StopperData* CPPUTILS_ARG_NN a_pStpDa
         return -1;
     }
 
-    cinternal_unnamed_sema_t sema_for_to_finish = (cinternal_unnamed_sema_t)0;
+    bool bSemaphoreExists = false;
+    cinternal_unnamed_sema_t sema_for_to_finish;
     if (this->flags.rd.serverRunning_true) {
         const int64_t currentThreadTid = CinternalGetCurrentTid();
         if (currentThreadTid != (this->serverTid)) {
@@ -436,13 +516,14 @@ int tcp_data_base_server_p::GetStopperData(StopperData* CPPUTILS_ARG_NN a_pStpDa
                 // log on semaphore creation failure
                 return -1;
             }
+            bSemaphoreExists = true;
         }
     }  //  if (this->flags.rd.serverRunning_false) {
 
     const int cnPort = ntohs(this->servAddr.sin_port);
     const uint64_t inShouldRun = this->flags.wr.shouldRun;
     this->flags.wr.shouldRun = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
-    ::std::thread* const pTmpThread = new ::std::thread([a_pStpData, a_count,cnPort,&sema_for_to_finish]() {
+    ::std::thread* const pTmpThread = new ::std::thread([a_pStpData, a_count,cnPort,&sema_for_to_finish,&bSemaphoreExists]() {
         tcp_socket pollSocket;
         int rtn = -1;
         for (size_t ind(0); ind < a_count; ) {
@@ -462,7 +543,7 @@ int tcp_data_base_server_p::GetStopperData(StopperData* CPPUTILS_ARG_NN a_pStpDa
             pollSocket.GetSysSocketAndReset(&aSysSock);
             a_pStpData[ind++].stp.sock = aSysSock.sock;
         }  //  while (rtn) {
-        if (sema_for_to_finish) {
+        if (bSemaphoreExists) {
             cinternal_unnamed_sema_post(&sema_for_to_finish);
         }
     });  //  ::std::thread tmpThread([&stpSocket,cnPort]() {
@@ -506,7 +587,7 @@ int tcp_data_base_server_p::GetStopperData(StopperData* CPPUTILS_ARG_NN a_pStpDa
         return 0;
     }  //  if (this->flags.rd.serverRunning_false) {
 
-    if (sema_for_to_finish) {
+    if (bSemaphoreExists) {
         cinternal_unnamed_sema_wait(&sema_for_to_finish);
         cinternal_unnamed_sema_destroy(&sema_for_to_finish);
     }
@@ -520,40 +601,15 @@ int tcp_data_base_server_p::GetStopperData(StopperData* CPPUTILS_ARG_NN a_pStpDa
 
 void tcp_data_base_server_p::RunServer()
 {
-
-#ifdef _WIN32
-    SignalHandlerPointer                initialSigintPointer;
-    initialSigintPointer = signal(SIGINT, &SigHandlerFunction);
-#else
-    struct sigaction                    initialSigpipeAction;
-    struct sigaction newAction;
-    memset(&newAction, 0, sizeof(struct sigaction));
-    sigemptyset(&newAction.sa_mask);
-    new_action.sa_flags = 0;
-    newAction.sa_handler = &SigHandlerFunction;
-    sigaction(SIGPIPE, &newAction, &initialSigpipeAction);
-#endif
-
     if (!this->clbk) {
         this->clbk = [](tcp_socket&, const sockaddr_in*) ->void {};
     }
 
     RunServerInline();
 
-    this->servAddr = {};
-    this->serverTid = 0;
-    CpputilsCloseSocket(this->serv);
-    this->serv = CPPUTILS_SOCKS_CLOSE_SOCK;
-    CpputilsCloseSocket(this->stpData.pol.sock);
-    this->stpData.pol.sock = CPPUTILS_SOCKS_CLOSE_SOCK;
-    this->flags.wr_all = CPPUTILS_BISTATE_MAKE_ALL_BITS_FALSE;
-
-#ifdef _WIN32
-    signal(SIGFPE, initialSigintPointer);
-#else
-    sigaction(SIGPIPE, &initialSigpipeAction, nullptr);
-#endif
-
+    if(this->flags.rd.shouldCleanAfterRun_true){
+        CleanServerAfterRunInline();
+    }
 }
 
 
@@ -563,31 +619,16 @@ int tcp_data_base_server_p::getPortNumber() const noexcept
 }
 
 
-int64_t tcp_data_base_server_p::StopServer() noexcept
+int64_t tcp_data_base_server_p::StopServerAndClean() noexcept
 {
-    const int64_t currentThreadTid = CinternalGetCurrentTid();
+    this->flags.wr.shouldCleanAfterRun = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
+    const int64_t currentThreadTid = StopServerInline();
     if (this->flags.rd.shouldRun_false) {
         return currentThreadTid;
     }
-    this->flags.wr.shouldRun = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
 
-    tcp_socket stpSockS(&this->stpData.stp);
-
-    if (currentThreadTid == (this->serverTid)) {
-        this->servAddr = {};
-        this->stpData.stp.sock = CPPUTILS_SOCKS_CLOSE_SOCK;
-        stpSockS.Close();
-        return currentThreadTid;
-    }
-
-    stpSockS.SendSimple(CPPUTILS_SOCKS_INTERNAL_STP_SRV, CPPUTILS_SOCKS_INTERNAL_STP_SRV_LEN);
-    while ((this->flags.rd.serverRunning_true) && (stpSockS.isValid())) {
-        CinternalSleepInterruptableMs(2);
-        stpSockS.SendSimple(CPPUTILS_SOCKS_INTERNAL_STP_SRV, CPPUTILS_SOCKS_INTERNAL_STP_SRV_LEN);
-    }
-    this->servAddr = {};
+    CpputilsCloseSocket(this->stpData.stp.sock);
     this->stpData.stp.sock = CPPUTILS_SOCKS_CLOSE_SOCK;
-    stpSockS.Close();
     return currentThreadTid;    
 }
 

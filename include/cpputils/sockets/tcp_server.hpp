@@ -66,9 +66,9 @@ public:
     tcp_server(tcp_server&& a_mM) noexcept;
     tcp_server& operator=(tcp_server&& a_mM) noexcept;
 
-    // stops and waits to stop
+    // stops and waits to stop and then clean server
     // can be stopped from accept callback, or from any thread
-    void StoptServer();
+    void StoptAndCleanServer();
     // server will start in the different thread
     int StartAsyncServerOnOtherThreadAndReturn(
         int a_nPort, const TypeConnectClbk& a_clbk,
@@ -93,7 +93,11 @@ public:
 
     // stops and waits to stop
     // can be stopped from accept callback, or from any thread
-    void StoptServer();
+    void StopAndCleanServer();
+
+    // stops and waits to stop
+    // can be stopped from accept callback, or from any thread
+    void StopButNotCleanServer();
 
     // creates server socket, but does not start server
     // returns port number, or -1 on error
