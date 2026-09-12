@@ -546,10 +546,9 @@ int tcp_server_base_p::GetStopperData(StopperData* CPPUTILS_ARG_NN a_pStpData, s
     const int curTid = (int)CinternalGetCurrentTid();
     CInternalLogDebug("In: %d, tid: %d",++nIter,curTid);
 
-    cinternal_unnamed_sema_t* const sema_for_to_finish_p = new cinternal_unnamed_sema_t();
-    if (cinternal_unnamed_sema_create(sema_for_to_finish_p, 0)) {
+    cinternal_unnamed_sema_t sema_for_to_finish;
+    if (cinternal_unnamed_sema_create(&sema_for_to_finish, 0)) {
         // log on semaphore creation failure
-        delete sema_for_to_finish_p;
         return -1;
     }
 
@@ -580,8 +579,8 @@ int tcp_server_base_p::GetStopperData(StopperData* CPPUTILS_ARG_NN a_pStpData, s
     
     const tcp_server_base::TypeConnectClbk* const aClbkIn_p = new tcp_server_base::TypeConnectClbk(this->clbk);
     typedef ::std::function<bool(tcp_socket&)>	TypeConnectExtraClbk;
-    size_t* const ind_p = new size_t(0);
-    const TypeConnectExtraClbk* const clbkExtra_p = new TypeConnectExtraClbk([this,a_pStpData,a_count, aClbkIn_p, inShouldRun,ind_p,sema_for_to_finish_p](tcp_socket& a_sock) ->bool{
+    size_t ind(0);
+    const TypeConnectExtraClbk* const clbkExtra_p = new TypeConnectExtraClbk([this,a_pStpData,a_count, aClbkIn_p, inShouldRun,&ind,&sema_for_to_finish](tcp_socket& a_sock) ->bool{
         const int curTid = (int)CinternalGetCurrentTid();
         CInternalLogDebug("Clbk: %d, tid: %d",nIter,curTid);
         a_sock.MakeSocketBlocking();
@@ -592,11 +591,11 @@ int tcp_server_base_p::GetStopperData(StopperData* CPPUTILS_ARG_NN a_pStpData, s
             if (memcmp(vcBuffer, CPPUTILS_SOCKS_INTERNAL_CHK_STR, CPPUTILS_SOCKS_INTERNAL_CHK_STR_LEN) == 0) {
                 SysSocket aSysSock;
                 a_sock.GetSysSocketAndRelease(&aSysSock);
-                a_pStpData[(*ind_p)++].pol.sock = aSysSock.sock;
-                if ((*ind_p) >= a_count) {
+                a_pStpData[ind++].pol.sock = aSysSock.sock;
+                if (ind >= a_count) {
                     this->clbk = *aClbkIn_p;
                     this->flags.wr.shouldRun = inShouldRun;
-                    cinternal_unnamed_sema_post(sema_for_to_finish_p);
+                    cinternal_unnamed_sema_post(&(sema_for_to_finish));
                 }  //  if (ind >= a_count) {
                 return true;
             }
@@ -615,14 +614,11 @@ int tcp_server_base_p::GetStopperData(StopperData* CPPUTILS_ARG_NN a_pStpData, s
         RunServerInline();
     }  //  if (this->flags.rd.serverRunning_false) {
 
+    cinternal_unnamed_sema_wait(&sema_for_to_finish);
+    cinternal_unnamed_sema_destroy(&sema_for_to_finish);
+
     pTmpThread->join();
     delete pTmpThread;
-
-    cinternal_unnamed_sema_wait(sema_for_to_finish_p);
-    cinternal_unnamed_sema_destroy(sema_for_to_finish_p);
-    delete sema_for_to_finish_p;
-
-    delete ind_p;
     delete clbkExtra_p;
     delete aClbkIn_p;
 
