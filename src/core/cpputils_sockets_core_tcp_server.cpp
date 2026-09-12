@@ -61,7 +61,6 @@ namespace cpputils { namespace sockets{
 #pragma warning (disable:5039)
 #pragma warning (disable:4820)
 #endif
-typedef void (*SignalHandlerPointer)(int);
 
 
 #ifndef CppSocketsTcpSrvLoggerCritical
@@ -138,10 +137,11 @@ public:
     int  CreateServerRaw(int a_nPort, bool a_bOnlyLocalHost, bool a_bReuse) noexcept;
     void DestroyServer() noexcept;
     int  GetStopperData(StopperData* CPPUTILS_ARG_NN a_pStpData, size_t a_count);
-    inline int64_t StopServerInline() noexcept;
-    inline void RunServerInline() ;
+    void RunServer();
+    int64_t StopServer() noexcept;
 
 private:
+    inline void RunServerInline();
     inline void ServerAcceptInline(struct sockaddr_in* CPPUTILS_ARG_NN a_bufForRemAddress);
 
 private:
@@ -159,39 +159,13 @@ public:
     ::std::thread                           server_thread;
 public:
     tcp_server_async_p();
-    void StartAsyncServerOnOtherThreadAndReturn(const tcp_server_base::TypeConnectClbk& a_clbk, const tcp_server_async::TypeExtraCleanClbk& a_ecclb);
+    int StartAsyncServerOnOtherThreadAndReturn(const tcp_server_base::TypeConnectClbk& a_clbk, const tcp_server_async::TypeExtraCleanClbk& a_ecclb);
 private:
     tcp_server_async_p(const tcp_server_async_p&) = delete;
     tcp_server_async_p(tcp_server_async_p&&) = delete;
     tcp_server_async_p& operator=(const tcp_server_async_p&) = delete;
     tcp_server_async_p& operator=(tcp_server_async_p&&) = delete;
 };
-
-
-/*--------------------------------------------------------------------------------------------------------------*/
-
-inline int64_t tcp_server_base_p::StopServerInline() noexcept
-{
-    const int64_t currentThreadTid = CinternalGetCurrentTid();
-    if (this->flags.rd.shouldRun_false) {
-        return currentThreadTid;
-    }
-    this->flags.wr.shouldRun = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
-
-    if (currentThreadTid == (this->serverTid)) {
-        this->flags.wr.serverRunning = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
-        return currentThreadTid;
-    }
-
-    tcp_socket stpSockS(&this->stpData.stp);
-    stpSockS.sendSimple(CPPUTILS_SOCKS_INTERNAL_STP_SRV, CPPUTILS_SOCKS_INTERNAL_STP_SRV_LEN);
-    while ((this->flags.rd.serverRunning_true) && (stpSockS.isValid())) {
-        CinternalSleepInterruptableMs(2);
-        stpSockS.sendSimple(CPPUTILS_SOCKS_INTERNAL_STP_SRV, CPPUTILS_SOCKS_INTERNAL_STP_SRV_LEN);
-    }
-    stpSockS.Release();
-    return currentThreadTid;
-}
 
 
 /*--------------------------------------------------------------------------------------------------------------*/
@@ -294,8 +268,10 @@ void tcp_server_async::StopServer()
     if (m_serv_base_data_p->flags.rd.shouldRun_false) {
         return;
     }
+
+    const int64_t inServerTid = m_serv_base_data_p->serverTid;
     
-    if ((m_serv_base_data_p->serverTid) != m_serv_base_data_p->StopServerInline()) {
+    if (inServerTid != m_serv_base_data_p->StopServer()) {
         cpputilsAsynSrvDt(m_serv_base_data_p)->server_thread.join();
     }
     else {
@@ -309,8 +285,7 @@ int tcp_server_async::StartAsyncServerOnOtherThreadAndReturn(const TypeConnectCl
     if(m_serv_base_data_p->flags.rd.isCreated_false){
         return 1;
     }
-    cpputilsAsynSrvDt(m_serv_base_data_p)->StartAsyncServerOnOtherThreadAndReturn(a_clbk,a_ecclb);
-    return 0;
+    return cpputilsAsynSrvDt(m_serv_base_data_p)->StartAsyncServerOnOtherThreadAndReturn(a_clbk,a_ecclb);
 }
 
 
@@ -325,8 +300,7 @@ int tcp_server_async::CreateAndStartAsyncServerOnOtherThreadAndReturn(
             return -1;
         }
     }  //  if(m_serv_base_data_p->flags.rd.isCreated_false){
-    cpputilsAsynSrvDt(m_serv_base_data_p)->StartAsyncServerOnOtherThreadAndReturn(a_clbk,a_ecclb);
-    return 0;
+    return cpputilsAsynSrvDt(m_serv_base_data_p)->StartAsyncServerOnOtherThreadAndReturn(a_clbk,a_ecclb);
 }
 
 
@@ -346,7 +320,7 @@ void tcp_server_sync::StopServer() noexcept
     if (m_serv_base_data_p->flags.rd.shouldRun_false) {
         return;
     }
-    m_serv_base_data_p->StopServerInline();
+    m_serv_base_data_p->StopServer();
 }
 
 
@@ -359,7 +333,7 @@ int tcp_server_sync::StartSyncServer(const TypeConnectClbk& a_clbk)
     }
     m_serv_base_data_p->clbk = a_clbk;
     m_serv_base_data_p->flags.wr.shouldRun = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
-    m_serv_base_data_p->RunServerInline();
+    m_serv_base_data_p->RunServer();
     return 0;
 }
 
@@ -379,23 +353,12 @@ int tcp_server_sync::CreateAndStartSyncServerOnThisThread(
     }  //  if(m_serv_base_data_p->flags.rd.isCreated_false){
     m_serv_base_data_p->clbk = a_clbk;
     m_serv_base_data_p->flags.wr.shouldRun = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
-    m_serv_base_data_p->RunServerInline();
+    m_serv_base_data_p->RunServer();
     return 0;
 }
 
 
 /*--------------------------------------------------------------------------------------------------------------*/
-
-tcp_server_base_p::tcp_server_base_p()
-{
-	this->flags.wr_all = CPPUTILS_BISTATE_MAKE_ALL_BITS_FALSE;
-    this->clbk = [](tcp_socket&, const sockaddr_in&) {};
-	this->serv = CPPUTILS_SOCKS_CLOSE_SOCK;
-    this->stpData = { {CPPUTILS_SOCKS_CLOSE_SOCK}, {CPPUTILS_SOCKS_CLOSE_SOCK} };
-    this->servAddr = {};
-    this->serverTid = 0;
-}
-
 
 inline void tcp_server_base_p::ServerAcceptInline(struct sockaddr_in* CPPUTILS_ARG_NN a_bufForRemAddress)
 {
@@ -418,7 +381,7 @@ inline void tcp_server_base_p::ServerAcceptInline(struct sockaddr_in* CPPUTILS_A
         this->flags.wr.inAcceptStack = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
         return;
     }  //  if (this->flags.rd.shouldRun_true) {
-    
+
     if (pollRes > 0) {
         if (vPollFd[1].revents & POLLIN) {
             char vcBuff[CPPUTILS_SOCKS_INTERNAL_STP_SRV_LEN + 10];
@@ -445,8 +408,28 @@ inline void tcp_server_base_p::ServerAcceptInline(struct sockaddr_in* CPPUTILS_A
 
 void tcp_server_base_p::RunServerInline()
 {
+    sockaddr_in remoteAddress;
+    while (this->flags.rd.shouldRun_true && this->flags.rd.hasError_false) {
+        ServerAcceptInline(&remoteAddress);
+    }
+}
+
+
+tcp_server_base_p::tcp_server_base_p()
+{
+	this->flags.wr_all = CPPUTILS_BISTATE_MAKE_ALL_BITS_FALSE;
+    this->clbk = [](tcp_socket&, const sockaddr_in&) {};
+	this->serv = CPPUTILS_SOCKS_CLOSE_SOCK;
+    this->stpData = { {CPPUTILS_SOCKS_CLOSE_SOCK}, {CPPUTILS_SOCKS_CLOSE_SOCK} };
+    this->servAddr = {};
+    this->serverTid = 0;
+}
+
+
+void tcp_server_base_p::RunServer()
+{
 #ifdef _WIN32
-    const SignalHandlerPointer initialSigintPointer = signal(SIGINT, &SigHandlerFunction);
+    const CinternalSimpleSignalHandlerPointer initialSigintPointer = signal(SIGINT, &SigHandlerFunction);
 #else
     struct sigaction initialSigpipeAction;
     struct sigaction newAction;
@@ -462,11 +445,8 @@ void tcp_server_base_p::RunServerInline()
     }
 
     this->serverTid = CinternalGetCurrentTid();
-    sockaddr_in remoteAddress;
     this->flags.wr.serverRunning = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
-    while (this->flags.rd.shouldRun_true && this->flags.rd.hasError_false) {
-        ServerAcceptInline(&remoteAddress);
-    }
+    RunServerInline();
     this->flags.wr.serverRunning = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
     this->serverTid = 0;
 
@@ -476,6 +456,30 @@ void tcp_server_base_p::RunServerInline()
     sigaction(SIGPIPE, &initialSigpipeAction, nullptr);
 #endif
 
+}
+
+
+int64_t tcp_server_base_p::StopServer() noexcept
+{
+    const int64_t currentThreadTid = CinternalGetCurrentTid();
+    if (this->flags.rd.shouldRun_false) {
+        return currentThreadTid;
+    }
+    this->flags.wr.shouldRun = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
+
+    if (currentThreadTid == (this->serverTid)) {
+        this->flags.wr.serverRunning = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
+        return currentThreadTid;
+    }
+
+    tcp_socket stpSockS(&this->stpData.stp);
+    stpSockS.sendSimple(CPPUTILS_SOCKS_INTERNAL_STP_SRV, CPPUTILS_SOCKS_INTERNAL_STP_SRV_LEN);
+    while ((this->flags.rd.serverRunning_true) && (stpSockS.isValid())) {
+        CinternalSleepInterruptableMs(2);
+        stpSockS.sendSimple(CPPUTILS_SOCKS_INTERNAL_STP_SRV, CPPUTILS_SOCKS_INTERNAL_STP_SRV_LEN);
+    }
+    stpSockS.Release();
+    return currentThreadTid;
 }
 
 
@@ -587,6 +591,7 @@ int tcp_server_base_p::GetStopperData(StopperData* CPPUTILS_ARG_NN a_pStpData, s
         return -1;
     }
 
+    const int64_t inServerTid = this->serverTid;
     const int64_t curTid = CinternalGetCurrentTid();
 #ifdef CPPSOCKETS_TCP_SERVER_EXTRA_LOGGING_NEEDED
     static int nIter =0;
@@ -612,7 +617,7 @@ int tcp_server_base_p::GetStopperData(StopperData* CPPUTILS_ARG_NN a_pStpData, s
 
     const int cnPort = GetPortNumberFromSocketAddressInline(this->servAddr);
     sockaddr_in clientAddr = {};
-    const uint64_t inShouldRun = this->flags.wr.shouldRun;
+    const uint64_t inFlagsAll = this->flags.wr_all;
     this->flags.wr.shouldRun = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
     ::std::thread* const pTmpThread = new ::std::thread([a_pStpData, a_count,cnPort,&clientAddr,&sema_to_wait_for_accept]() {
         tcp_socket pollSocket;
@@ -657,7 +662,10 @@ int tcp_server_base_p::GetStopperData(StopperData* CPPUTILS_ARG_NN a_pStpData, s
                     cinternal_unnamed_sema_post(sema_for_to_finish_p);
                 }
                 else{
+                    tcp_socket stpSockS(&this->stpData.stp);
                     this->flags.wr.shouldRun = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
+                    stpSockS.sendSimple(CPPUTILS_SOCKS_INTERNAL_STP_SRV, CPPUTILS_SOCKS_INTERNAL_STP_SRV_LEN);
+                    stpSockS.Release();
                 }
             }  //  if (ind >= a_count) {
             return true;
@@ -681,7 +689,8 @@ int tcp_server_base_p::GetStopperData(StopperData* CPPUTILS_ARG_NN a_pStpData, s
         RunServerInline();
     }
 
-    this->flags.wr.shouldRun = inShouldRun;
+    this->flags.wr_all = inFlagsAll;
+    this->serverTid = inServerTid;
     cinternal_unnamed_sema_destroy(&sema_to_wait_for_accept);
     pTmpThread->join();
     delete pTmpThread;
@@ -705,20 +714,33 @@ tcp_server_async_p::tcp_server_async_p()
 }
 
 
-void tcp_server_async_p::StartAsyncServerOnOtherThreadAndReturn(const tcp_server_base::TypeConnectClbk& a_clbk, const tcp_server_async::TypeExtraCleanClbk& a_ecclb)
+int tcp_server_async_p::StartAsyncServerOnOtherThreadAndReturn(const tcp_server_base::TypeConnectClbk& a_clbk, const tcp_server_async::TypeExtraCleanClbk& a_ecclb)
 {
     if (this->flags.rd.shouldRun_true) {
-        return;  // server already started
+        return 1;  // server already started
     }
 
     this->clbk = a_clbk;
     this->ecClbk = a_ecclb ? (a_ecclb) : ([]()->void {});
     this->flags.wr.shouldRun = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
 
-    this->server_thread = ::std::thread([this]() {
-        this->RunServerInline();
+    cinternal_unnamed_sema_t sema_to_wait_for_server_start;
+    if (cinternal_unnamed_sema_create(&sema_to_wait_for_server_start, 0)) {
+        // log on semaphore creation failure
+        return -1;
+    }  //  if (cinternal_unnamed_sema_create(sema_for_to_finish_p, 0)) {
+
+    this->server_thread = ::std::thread([this,&sema_to_wait_for_server_start]() {
+        this->serverTid = CinternalGetCurrentTid();
+        this->flags.wr.serverRunning = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
+        cinternal_unnamed_sema_post(&sema_to_wait_for_server_start);
+        this->RunServer();
         this->ecClbk();
     });
+
+    cinternal_unnamed_sema_wait(&sema_to_wait_for_server_start);
+    cinternal_unnamed_sema_destroy(&sema_to_wait_for_server_start);
+    return this->flags.rd.hasError_false ? 0 : -1;
 }
 
 /*--------------------------------------------------------------------------------------------------------------*/

@@ -20,6 +20,7 @@
 
 
 static void ServerAcceptFunctionStatic(::cpputils::sockets::tcp_socket& a_sock, const sockaddr_in& a_addr);
+static void InterruptFunction(CinternalInterruptArgType1);
 
 
 int main(void)
@@ -27,8 +28,7 @@ int main(void)
     CinternalLoggerSetCurrentLogLevel(10);
 
 #ifdef _WIN32
-#define SIGUSR1  10
-    const SignalHandlerPointer initialSigintPointer = signal(SIGINT, &SigHandlerFunction);
+    const CinternalSimpleSignalHandlerPointer initialSigintPointer = signal(CinternalSignalSIGPIPE, [](int) {});
 #else
     struct sigaction initialSigpipeAction;
     struct sigaction newAction;
@@ -36,7 +36,7 @@ int main(void)
     sigemptyset(&newAction.sa_mask);
     newAction.sa_flags = 0;
     newAction.sa_handler = [](int){};
-    sigaction(SIGUSR1, &newAction, &initialSigpipeAction);
+    sigaction(CinternalSignalSIGPIPE, &newAction, &initialSigpipeAction);
 #endif
 
     int nIteration;
@@ -62,10 +62,10 @@ int main(void)
     nIteration = 0;
     const int nRet = aServer.CreateAndStartAsyncServerOnOtherThreadAndReturn(9030, [curThreadHandle,&aServer,&nIteration](::cpputils::sockets::tcp_socket& a_sock, const sockaddr_in& a_addr) {
         ServerAcceptFunctionStatic(a_sock,a_addr);
-        if((++nIteration)>5){
+        if((++nIteration)>1){
             aServer.StopServer();
             aServer.DestroyServer();
-            CinternalInterruptThread(curThreadHandle,[](){},SIGUSR1);
+            CinternalInterruptThread(curThreadHandle, CinternalSignalSIGPIPE, &InterruptFunction);
         }
         else{
             ::cpputils::sockets::StopperData stpData;
@@ -85,14 +85,21 @@ int main(void)
     CinternalSleepInterruptableMs(1000000);
     aServer.StopServer();
     aServer.DestroyServer();
+    cinternal_thread_close_cur_thread_handle(curThreadHandle);
 
 #ifdef _WIN32
-    signal(SIGFPE, initialSigintPointer);
+    signal(CinternalSignalSIGPIPE, initialSigintPointer);
 #else
-    sigaction(SIGPIPE, &initialSigpipeAction, nullptr);
+    sigaction(CinternalSignalSIGPIPE, &initialSigpipeAction, nullptr);
 #endif
 
 	return 0;
+}
+
+
+static void InterruptFunction(CinternalInterruptArgType1)
+{
+    CInternalLogDebug(" ");
 }
 
 
