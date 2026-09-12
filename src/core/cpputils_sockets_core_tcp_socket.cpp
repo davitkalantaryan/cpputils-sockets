@@ -15,6 +15,12 @@
 #ifndef MakeSocketNonBlockingInline_needed
 #define MakeSocketNonBlockingInline_needed
 #endif
+#ifndef GetSocketAddressInline_needed
+#define GetSocketAddressInline_needed
+#endif
+#ifndef GetPortNumberFromSocketAddressInline_needed
+#define GetPortNumberFromSocketAddressInline_needed
+#endif
 
 #include "cpputils_sockets_core_tcp_socket_p.hpp"
 #include <cinternal/signals.h>
@@ -110,7 +116,7 @@ static bool SOCKET_INPROGRESS_INLINE(void) noexcept {
 }
 
 
-int tcp_socket::Connect(const char* CPPUTILS_ARG_NN a_svrName, int a_port, int a_connectionTimeoutMs) noexcept
+int tcp_socket::Connect(const char* CPPUTILS_ARG_NN a_svrName, int a_port, int a_connectionTimeoutMs, sockaddr_in* a_sockAddr_p) noexcept
 {
 	if (m_sock_data_p->sock != CPPUTILS_SOCKS_CLOSE_SOCK) {
 		CpputilsCloseSocket(m_sock_data_p->sock);
@@ -154,6 +160,20 @@ int tcp_socket::Connect(const char* CPPUTILS_ARG_NN a_svrName, int a_port, int a
 
 	// let's make socket non blocking
 	MakeSocketNonBlocking();
+
+    if(a_sockAddr_p){
+        memset(a_sockAddr_p, 0, sizeof(struct sockaddr_in));
+        a_sockAddr_p->sin_family = (unsigned short)AF_INET;
+        a_sockAddr_p->sin_port = 0;
+        a_sockAddr_p->sin_addr.s_addr = htonl(INADDR_ANY);
+        const socklen_t addr_len_inner = sizeof(struct sockaddr_in);
+        const int bindRtn = bind(m_sock_data_p->sock, (struct sockaddr*)a_sockAddr_p, addr_len_inner);
+        if (!CHECK_FOR_SOCK_ERROR(bindRtn)) {
+            if(GetSocketAddressInline(m_sock_data_p->sock,a_sockAddr_p)){
+                *a_sockAddr_p = {};
+            }
+        }  //  if (!CHECK_FOR_SOCK_ERROR(bindRtn)) {
+    }  //  if(a_sockAddr_p){
 
 	const socklen_t addr_len = sizeof(addr);
 	int rtn = ::connect(m_sock_data_p->sock, (struct sockaddr*)&addr, addr_len);
@@ -271,6 +291,16 @@ int tcp_socket::send(const void* a_cpBuffer, size_t a_nSize) const noexcept
 int tcp_socket::sendSimple(const void* a_cpBuffer, size_t a_nSize) const noexcept
 {
 	return (int)::send(m_sock_data_p->sock, (const char*)a_cpBuffer, (sndrcv_inp_cnt)a_nSize, 0);
+}
+
+
+int tcp_socket::getPort()const noexcept
+{
+    sockaddr_in sockAddr;
+    if(GetSocketAddressInline(m_sock_data_p->sock,&sockAddr)){
+        return -1;
+    }
+    return GetPortNumberFromSocketAddressInline(sockAddr);
 }
 
 
@@ -426,13 +456,13 @@ int tcp_socket::timeoutMs()const noexcept
 
 /*--------------------------------------------------------------------------------------------------------------*/
 
-CSOCKETS_EXPORT const char* GetIPV4Address(const sockaddr_in* CPPUTILS_ARG_NN a_addr) noexcept
+CSOCKETS_EXPORT const char* GetIPV4Address(const sockaddr_in& a_addr) noexcept
 {
 #ifdef _MSC_VER
 #pragma warning (push)
 #pragma warning (disable:4996)
 #endif
-	return ::inet_ntoa(a_addr->sin_addr);
+    return ::inet_ntoa(a_addr.sin_addr);
 #ifdef _MSC_VER
 #pragma warning (pop)
 #endif

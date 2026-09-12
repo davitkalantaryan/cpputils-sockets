@@ -30,7 +30,7 @@ public:
     tcp_socket(tcp_socket&& a_mM);
 	tcp_socket& operator=(tcp_socket&& a_mM) noexcept;
 
-    int  Connect(const char* CPPUTILS_ARG_NN a_svrName, int a_port, int a_connectionTimeoutMs) noexcept;
+    int  Connect(const char* CPPUTILS_ARG_NN a_svrName, int a_port, int a_connectionTimeoutMs, sockaddr_in* a_sockAddr_p=nullptr) noexcept;
     void Close() noexcept;
     int  receiveAll(void* a_pBuffer, size_t a_nSize)const noexcept;
     int  receiveSngl(void* a_pBuffer, size_t a_nSize)const noexcept;
@@ -39,6 +39,7 @@ public:
     void MakeSocketBlocking() noexcept;
     void MakeSocketNonBlocking() noexcept;
     int  SetTimeout(int a_nTimeoutMs) noexcept;
+    int  getPort()const noexcept;
     int  waitForReadData(int a_timeoutMs)const noexcept;  // 1,2,3 => data, 0 => timeout, -1 => error, socket should be closed
     void ReplaceWithOtherSocket(tcp_socket* CPPUTILS_ARG_NN a_pMM) noexcept;
     void GetSysSocketAndRelease(SysSocket* CPPUTILS_ARG_NN a_pSysSocket) noexcept;
@@ -64,7 +65,7 @@ private:
 };
 
 
-CSOCKETS_EXPORT const char* GetIPV4Address(const sockaddr_in* CPPUTILS_ARG_NN a_addr) noexcept;
+CSOCKETS_EXPORT const char* GetIPV4Address(const sockaddr_in& a_addr) noexcept;
 
 
 }}  //  namespace cpputils { namespace sockets{

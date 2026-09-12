@@ -11,20 +11,37 @@
 #include <cpputils/sockets/tcp_server.hpp>
 #include <cinternal/signals.h>
 #include <cinternal/logger.h>
+#include <cinternal/threading.h>
+#include <cinternal/win_threading.h>
 #include <cinternal/disable_compiler_warnings.h>
 #include <stdio.h>
+#include <string.h>
 #include <cinternal/undisable_compiler_warnings.h>
 
 
-static void ServerAcceptFunctionStatic(::cpputils::sockets::tcp_socket& a_sock, const sockaddr_in* CPPUTILS_ARG_NN a_addr);
+static void ServerAcceptFunctionStatic(::cpputils::sockets::tcp_socket& a_sock, const sockaddr_in& a_addr);
 
 
 int main(void)
 {
     CinternalLoggerSetCurrentLogLevel(10);
 
-    ::cpputils::sockets::StopperData stpData;
+#ifdef _WIN32
+#define SIGUSR1  10
+    const SignalHandlerPointer initialSigintPointer = signal(SIGINT, &SigHandlerFunction);
+#else
+    struct sigaction initialSigpipeAction;
+    struct sigaction newAction;
+    memset(&newAction, 0, sizeof(struct sigaction));
+    sigemptyset(&newAction.sa_mask);
+    newAction.sa_flags = 0;
+    newAction.sa_handler = [](int){};
+    sigaction(SIGUSR1, &newAction, &initialSigpipeAction);
+#endif
 
+    int nIteration;
+    const cinternal_thread_t curThreadHandle = cinternal_thread_get_current();
+    ::cpputils::sockets::StopperData stpData;
     ::cpputils::sockets::tcp_server_sync aServerBlk;
     //const int cnPort = aServerBlk.CreateServer(0,false);  // port = 0 will be used, so system will allocate one
     const int cnPort = aServerBlk.CreateServer(9030,false);  // port = 0 will be used, so system will allocate one
@@ -35,17 +52,25 @@ int main(void)
     aServerBlk.GetStopperData(&stpData, 1);
     fprintf(stdout,"Sync Server port is %d. Going to infinite loop. If client connected, then server will be stopped\n", cnPort);
     fflush(stdout);
-    aServerBlk.StartSyncServer([&aServerBlk](::cpputils::sockets::tcp_socket& a_sock, const sockaddr_in* CPPUTILS_ARG_NN a_addr) {
+    aServerBlk.StartSyncServer([&aServerBlk](::cpputils::sockets::tcp_socket& a_sock, const sockaddr_in& a_addr) {
         ServerAcceptFunctionStatic(a_sock, a_addr);
         aServerBlk.StopServer();
         aServerBlk.DestroyServer();
     });
 
     ::cpputils::sockets::tcp_server_async aServer;
-    const int nRet = aServer.CreateAndStartAsyncServerOnOtherThreadAndReturn(9030, [&aServer](::cpputils::sockets::tcp_socket& a_sock, const sockaddr_in* CPPUTILS_ARG_NN a_addr) {
+    nIteration = 0;
+    const int nRet = aServer.CreateAndStartAsyncServerOnOtherThreadAndReturn(9030, [curThreadHandle,&aServer,&nIteration](::cpputils::sockets::tcp_socket& a_sock, const sockaddr_in& a_addr) {
         ServerAcceptFunctionStatic(a_sock,a_addr);
-        aServer.StopServer();
-        aServer.DestroyServer();
+        if((++nIteration)>5){
+            aServer.StopServer();
+            aServer.DestroyServer();
+            CinternalInterruptThread(curThreadHandle,[](){},SIGUSR1);
+        }
+        else{
+            ::cpputils::sockets::StopperData stpData;
+            aServer.GetStopperData(&stpData, 1);
+        }
 	});
 	if (nRet) {
 		fprintf(stderr, "Unable to start server!\n");
@@ -57,15 +82,21 @@ int main(void)
     // we wait for 100 seconds, so one can connect to server by using telnet or netcat
     // also we stop the server from callback
     aServer.GetStopperData(&stpData, 1);
-    CinternalSleepInterruptableMs(15000);
+    CinternalSleepInterruptableMs(1000000);
     aServer.StopServer();
     aServer.DestroyServer();
+
+#ifdef _WIN32
+    signal(SIGFPE, initialSigintPointer);
+#else
+    sigaction(SIGPIPE, &initialSigpipeAction, nullptr);
+#endif
 
 	return 0;
 }
 
 
-static void ServerAcceptFunctionStatic(::cpputils::sockets::tcp_socket& a_sock, const sockaddr_in* CPPUTILS_ARG_NN a_addr)
+static void ServerAcceptFunctionStatic(::cpputils::sockets::tcp_socket& a_sock, const sockaddr_in& a_addr)
 {
     char vcBuffer[128];
     ::cpputils::sockets::tcp_socket aSocket;

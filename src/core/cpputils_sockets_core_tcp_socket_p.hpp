@@ -28,6 +28,25 @@ public:
 };
 
 
+#ifdef GetSocketAddressInline_needed
+static inline int GetSocketAddressInline(socket_t a_sock, sockaddr_in* CPPUTILS_ARG_NN a_sockAddr_p) noexcept{
+    cpputils_socklen_t sock_name_addr_len = static_cast<cpputils_socklen_t>(sizeof(struct sockaddr_in));
+    const int rtn = ::getsockname(a_sock, (struct sockaddr*)a_sockAddr_p, &sock_name_addr_len);
+    if (CHECK_FOR_SOCK_ERROR(rtn)) {
+        return rtn;
+    }
+    return 0;
+}
+#endif
+
+
+#ifdef GetPortNumberFromSocketAddressInline_needed
+static inline int GetPortNumberFromSocketAddressInline(const sockaddr_in& a_sockAddr) noexcept{
+    return ntohs(a_sockAddr.sin_port);
+}
+#endif
+
+
 #ifdef MakeSocketNonBlockingInline_needed
 static inline void MakeSocketNonBlockingInline(socket_t a_sock) noexcept{
 #ifdef	_WIN32

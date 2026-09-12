@@ -35,7 +35,7 @@ class CPPUTILS_DLL_PRIVATE CStprSocks_p;
 class CSOCKETS_EXPORT tcp_server_base
 {
 public:
-	typedef ::std::function<void(tcp_socket&,const sockaddr_in* CPPUTILS_ARG_NN)>	TypeConnectClbk;
+    typedef ::std::function<void(tcp_socket&,const sockaddr_in&)>	TypeConnectClbk;
 
 public:
     ~tcp_server_base();

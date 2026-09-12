@@ -15,7 +15,8 @@ QT -= widgets
 CONFIG -= qt
 CONFIG += console
 
-DEFINES += CPPUTILS_DO_NOT_USE_STD_FUNCTION
+DEFINES += CPPSOCKETS_TCP_SERVER_EXTRA_LOGGING_NEEDED
+DEFINES += CPPSOCKETS_TCP_SERVER_USE_CINTERNAL_LOGGER
 
 win32{
 	LIBS += -lWs2_32
@@ -24,12 +25,11 @@ win32{
 }
 
 
+SOURCES += "$${cpputilsSocketsRepoRoot}/src/tests/main_tcp_server_test.cpp"
+SOURCES += $$files($${cpputilsSocketsRepoRoot}/src/core/*.cpp,true)
 SOURCES += "$${cinternalRepoRoot}/src/core/cinternal_core_logger.c"
-SOURCES	+=		\
-        "$${PWD}/../../../src/tests/main_tcp_server_test.cpp"	    \
-	"$${PWD}/../../../src/core/cpputils_sockets_core_tcp_socket.cpp"    \
-	"$${PWD}/../../../src/core/cpputils_sockets_core_tcp_server.cpp"
 
+HEADERS += $$files($${cpputilsSocketsRepoRoot}/src/core/*.hpp,true)
 HEADERS += $$files($${cpputilsSocketsRepoRoot}/include/*.h,true)
 HEADERS += $$files($${cpputilsSocketsRepoRoot}/include/*.hpp,true)
 
