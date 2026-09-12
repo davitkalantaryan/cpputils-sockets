@@ -38,7 +38,7 @@ int main(int a_argc, char* a_argv[])
 	}
 	fflush(stdout);
 
-	aSocket.Send("pong",4);
+	aSocket.send("pong",4);
 
 	// aSocket.Close(); // no need for this, because destructor will do this
 
