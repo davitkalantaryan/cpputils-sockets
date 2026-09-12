@@ -10,6 +10,7 @@
 
 #include <cpputils/sockets/tcp_socket.hpp>
 #include <cpputils/sockets/socket_data.hpp>
+#include <cinternal/bistateflags.h>
 
 
 namespace cpputils { namespace sockets{
@@ -21,12 +22,14 @@ public:
 	socket_t	sock;
     int         timeoutMs;
     int         reserved01;
-    bool        isBlocking;
-    bool        reserved02[(sizeof(void*) - sizeof(bool))/ sizeof(bool)];
+    CPPUTILS_BISTATE_FLAGS_UN(
+        isBlocking
+    )flags;
 };
 
 
-static inline void MakeSocketNonBlockingInline(socket_t a_sock){
+#ifdef MakeSocketNonBlockingInline_needed
+static inline void MakeSocketNonBlockingInline(socket_t a_sock) noexcept{
 #ifdef	_WIN32
 	unsigned long on = 1;
 	ioctlsocket(a_sock, FIONBIO, &on);
@@ -38,6 +41,7 @@ static inline void MakeSocketNonBlockingInline(socket_t a_sock){
 	}
 #endif
 }
+#endif
 
 
 enum class DeskType {
@@ -53,7 +57,7 @@ enum class DeskType {
 
 #ifdef WaitForDataOnSocketInline_needed
 // 1,2,3 => data, 0 => timeout, -1 => error, socket should be closed
-static inline int WaitForDataOnSocketInline(socket_t a_sock, int a_timeoutMs, const DeskType& a_desc) {
+static inline int WaitForDataOnSocketInline(socket_t a_sock, int a_timeoutMs, const DeskType& a_desc) noexcept {
 	fd_set* pRdFds = nullptr, * pWrFds = nullptr, * pErFds = nullptr;
 	fd_set rdfds, wrfds, errfds;
 	struct timeval  aTimeout;

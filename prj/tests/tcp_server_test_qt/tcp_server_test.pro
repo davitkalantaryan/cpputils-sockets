@@ -24,6 +24,7 @@ win32{
 }
 
 
+SOURCES += "$${cinternalRepoRoot}/src/core/cinternal_core_logger.c"
 SOURCES	+=		\
         "$${PWD}/../../../src/tests/main_tcp_server_test.cpp"	    \
 	"$${PWD}/../../../src/core/cpputils_sockets_core_tcp_socket.cpp"    \

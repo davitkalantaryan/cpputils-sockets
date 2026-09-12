@@ -22,8 +22,8 @@ int main(void)
 {
     ::cpputils::sockets::StopperData stpData;
 
-    ::cpputils::sockets::blocking_tcp_server aServerBlk;
-    const int cnPort = aServerBlk.CreateBlockingServer();  // port = 0 will be used, so system will allocate one
+    ::cpputils::sockets::tcp_server_sync aServerBlk;
+    const int cnPort = aServerBlk.CreateServer();  // port = 0 will be used, so system will allocate one
     //const int cnPort = aServerBlk.CreateBlockingServer(9030);  // port = 0 will be used, so system will allocate one
     if (cnPort < 0) {
         fprintf(stderr, "negative port = %d\n", cnPort);
@@ -32,15 +32,17 @@ int main(void)
     aServerBlk.GetStopperData(&stpData, 1);
     fprintf(stdout,"Sync Server port is %d. Going to infinite loop. If client connected, then server will be stopped\n", cnPort);
     fflush(stdout);
-    aServerBlk.RunBlockingServer([&aServerBlk](::cpputils::sockets::tcp_socket& a_sock, const sockaddr_in* CPPUTILS_ARG_NN a_addr) {
+    aServerBlk.StartSyncServer([&aServerBlk](::cpputils::sockets::tcp_socket& a_sock, const sockaddr_in* CPPUTILS_ARG_NN a_addr) {
         ServerAcceptFunctionStatic(a_sock, a_addr);
-        aServerBlk.StopAndCleanServer();
+        aServerBlk.StopServer();
+        aServerBlk.DestroyServer();
     });
 
-	::cpputils::sockets::tcp_server aServer;
-	const int nRet = aServer.StartAsyncServerOnOtherThreadAndReturn(9030, [&aServer](::cpputils::sockets::tcp_socket& a_sock, const sockaddr_in* CPPUTILS_ARG_NN a_addr) {
+    ::cpputils::sockets::tcp_server_async aServer;
+    const int nRet = aServer.CreateAndStartAsyncServerOnOtherThreadAndReturn(9030, [&aServer](::cpputils::sockets::tcp_socket& a_sock, const sockaddr_in* CPPUTILS_ARG_NN a_addr) {
         ServerAcceptFunctionStatic(a_sock,a_addr);
-        aServer.StoptAndCleanServer();
+        aServer.StopServer();
+        aServer.DestroyServer();
 	});
 	if (nRet) {
 		fprintf(stderr, "Unable to start server!\n");
@@ -53,7 +55,8 @@ int main(void)
     // also we stop the server from callback
     aServer.GetStopperData(&stpData, 1);
     CinternalSleepInterruptableMs(15000);
-    aServer.StoptAndCleanServer(); // if callback stopped, then this call will not do anything
+    aServer.StopServer();
+    aServer.DestroyServer();
 
 	return 0;
 }
@@ -69,7 +72,7 @@ static void ServerAcceptFunctionStatic(::cpputils::sockets::tcp_socket& a_sock, 
         fflush(stdout);
     }
     aSocket.ReplaceWithOtherSocket(&a_sock); // after this one can keep aNewSock permanently
-    aSocket.Send("ping", 4);
+    aSocket.send("ping", 4);
     const int nRcv = aSocket.receiveAll(vcBuffer, 4);
     fprintf(stdout, "nRcv = %d\n", nRcv);
 
