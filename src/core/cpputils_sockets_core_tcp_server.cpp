@@ -63,8 +63,12 @@ static void SigHandlerFunction(int a_signo) noexcept {
 class CPPUTILS_DLL_PRIVATE CStprSocks_p
 {
 public:
+    CStprSocks_p() = default;
     ::cpputils::sockets::tcp_socket     wUp;
     ::cpputils::sockets::SysSocket      pol;
+private:
+    CStprSocks_p(const CStprSocks_p&) = delete;
+    CStprSocks_p& operator=(const CStprSocks_p&) = delete;
 };
 
 
@@ -80,7 +84,7 @@ public:
         shouldRun,
         serverRunning,
         isCreated,
-        hasError,
+        hasError
     )	flags;
 
 public:
@@ -753,7 +757,7 @@ int CStprSocks::waitForAction(size_t a_rawSocksCount, ptrdiff_t* a_otherRawSocks
     a_pollfdBuff_p[a_rawSocksCount].events = POLLIN | POLLRDNORM | POLLRDBAND;
     a_pollfdBuff_p[a_rawSocksCount].revents = 0;
 
-    const int pollRes = CpputilsPoll(a_pollfdBuff_p,a_rawSocksCount+1, a_timeoutMs);
+    const int pollRes = CpputilsPoll(a_pollfdBuff_p,(cpputils_poll_arg2)(a_rawSocksCount+1), a_timeoutMs);
 
     if(a_pollfdBuff_p[a_rawSocksCount].revents & POLLIN){
         // we have to read buffer for preventing socket kernel buffer overflow

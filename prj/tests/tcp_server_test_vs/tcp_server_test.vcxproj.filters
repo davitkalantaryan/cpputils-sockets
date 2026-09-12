@@ -39,6 +39,9 @@
     <ClCompile Include="..\..\..\src\core\cpputils_sockets_core_tcp_server.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\contrib\cinternal\src\core\cinternal_core_logger.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\core\cpputils_sockets_core_tcp_socket_p.hpp">
