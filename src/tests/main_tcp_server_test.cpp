@@ -10,6 +10,7 @@
 #include <cpputils/sockets/socket_data.hpp>
 #include <cpputils/sockets/tcp_server.hpp>
 #include <cinternal/signals.h>
+#include <cinternal/logger.h>
 #include <cinternal/disable_compiler_warnings.h>
 #include <stdio.h>
 #include <cinternal/undisable_compiler_warnings.h>
@@ -20,6 +21,8 @@ static void ServerAcceptFunctionStatic(::cpputils::sockets::tcp_socket& a_sock, 
 
 int main(void)
 {
+    CinternalLoggerSetCurrentLogLevel(10);
+
     ::cpputils::sockets::StopperData stpData;
 
     ::cpputils::sockets::tcp_server_sync aServerBlk;

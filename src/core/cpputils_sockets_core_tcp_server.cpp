@@ -25,13 +25,22 @@
 #include <cinternal/bistateflags.h>
 #include <cinternal/signals.h>
 #include <cinternal/gettid.h>
-#include <cinternal/logger.h>
 #include <cinternal/disable_compiler_warnings.h>
 #include <thread>
+#ifdef CPPSOCKETS_TCP_SERVER_EXTRA_LOGGING_NEEDED
+#include <inttypes.h>
+#endif
 #include <string.h>
 #include <stdlib.h>
 #include <signal.h>
+#ifdef CPPSOCKETS_TCP_SERVER_USE_CINTERNAL_LOGGER
+#include <cinternal/logger.h>
+#else
+#include <stdio.h>
+#include <stdarg.h>
+#endif
 #include <cinternal/undisable_compiler_warnings.h>
+
 
 namespace cpputils { namespace sockets{
 
@@ -50,6 +59,36 @@ namespace cpputils { namespace sockets{
 #pragma warning (disable:4820)
 #endif
 typedef void (*SignalHandlerPointer)(int);
+
+
+#ifndef CppSocketsTcpSrvLoggerCritical
+#ifdef CPPSOCKETS_TCP_SERVER_USE_CINTERNAL_LOGGER
+
+#define CppSocketsTcpSrvLoggerCritical                      CInternalLogCritical
+#define CppSocketsTcpSrvLoggerDebugLogLvl                   CInternalLogDebugLogLvl
+
+#else  //  #ifdef CPPSOCKETS_TCP_SERVER_USE_CINTERNAL_LOGGER
+
+
+static int s_nLogLevel = 0;
+
+static inline void CppSocketsTcpSrvLoggerDbgLogLvlInlineRaw(int a_logLevel, FILE* CPPUTILS_ARG_NN a_pOut, const char* CPPUTILS_ARG_NN a_frmt, ...) noexcept{
+    if(a_logLevel<=s_nLogLevel){
+        va_list argptr;
+        va_start(argptr,a_frmt);
+        vfprintf(a_pOut,a_frmt,argptr);
+        va_end(argptr);
+        fprintf(a_pOut,"\n");
+        fflush(a_pOut);
+    }
+}
+
+#define CppSocketsTcpSrvLoggerCritical(...)                 CppSocketsTcpSrvLoggerDbgLogLvlInlineRaw(0,stderr,__VA_ARGS__)
+#define CppSocketsTcpSrvLoggerDebugLogLvl(_logLevel,...)    CppSocketsTcpSrvLoggerDbgLogLvlInlineRaw((_logLevel),stdout,__VA_ARGS__)
+
+
+#endif  //  #ifdef/#else CPPSOCKETS_TCP_SERVER_USE_CINTERNAL_LOGGER
+#endif  //  #ifndef CppSocketsTcpSrvLoggerCritical
 
 
 static void SigHandlerFunction(int a_signo) noexcept {
@@ -439,8 +478,8 @@ void tcp_server_base_p::DestroyServer() noexcept
         return;
     }
 
-    if(this->flags.rd.serverRunning_true){
-        CInternalLogCritical("Before Destroying server, one should stop it");
+    if(this->flags.rd.serverRunning_true){        
+        CppSocketsTcpSrvLoggerCritical("Before Destroying server, one should stop it");
         return;
     }
 
@@ -542,15 +581,23 @@ int tcp_server_base_p::GetStopperData(StopperData* CPPUTILS_ARG_NN a_pStpData, s
         return -1;
     }
 
+    const int64_t curTid = CinternalGetCurrentTid();
+#ifdef CPPSOCKETS_TCP_SERVER_EXTRA_LOGGING_NEEDED
     static int nIter =0;
-    const int curTid = (int)CinternalGetCurrentTid();
-    CInternalLogDebug("In: %d, tid: %d",++nIter,curTid);
+    CppSocketsTcpSrvLoggerDebugLogLvl(3,"In: %d, curTid: %" PRId64 ", srvTid: %" PRId64,++nIter,curTid, this->serverTid);
+#endif
 
-    cinternal_unnamed_sema_t sema_for_to_finish;
-    if (cinternal_unnamed_sema_create(&sema_for_to_finish, 0)) {
-        // log on semaphore creation failure
-        return -1;
-    }
+    cinternal_unnamed_sema_t* sema_for_to_finish_p = nullptr;
+    if (this->flags.rd.serverRunning_true) {
+        if(curTid != (this->serverTid)){
+            sema_for_to_finish_p = new cinternal_unnamed_sema_t();
+            if (cinternal_unnamed_sema_create(sema_for_to_finish_p, 0)) {
+                // log on semaphore creation failure
+                delete sema_for_to_finish_p;
+                return -1;
+            }  //  if (cinternal_unnamed_sema_create(sema_for_to_finish_p, 0)) {
+        }  //  if(curTid != (this->serverTid)){
+    }  //  if (this->flags.rd.serverRunning_true) {
 
     const int cnPort = ntohs(this->servAddr.sin_port);
     const uint64_t inShouldRun = this->flags.wr.shouldRun;
@@ -580,9 +627,11 @@ int tcp_server_base_p::GetStopperData(StopperData* CPPUTILS_ARG_NN a_pStpData, s
     const tcp_server_base::TypeConnectClbk* const aClbkIn_p = new tcp_server_base::TypeConnectClbk(this->clbk);
     typedef ::std::function<bool(tcp_socket&)>	TypeConnectExtraClbk;
     size_t ind(0);
-    const TypeConnectExtraClbk* const clbkExtra_p = new TypeConnectExtraClbk([this,a_pStpData,a_count, aClbkIn_p, inShouldRun,&ind,&sema_for_to_finish](tcp_socket& a_sock) ->bool{
-        const int curTid = (int)CinternalGetCurrentTid();
-        CInternalLogDebug("Clbk: %d, tid: %d",nIter,curTid);
+    const TypeConnectExtraClbk* const clbkExtra_p = new TypeConnectExtraClbk([this,a_pStpData,a_count, aClbkIn_p, inShouldRun,&ind,sema_for_to_finish_p](tcp_socket& a_sock) ->bool{
+#ifdef CPPSOCKETS_TCP_SERVER_EXTRA_LOGGING_NEEDED
+        const int64_t curTid = CinternalGetCurrentTid();
+        CppSocketsTcpSrvLoggerDebugLogLvl(3,"Clbk: %d, curTid: %" PRId64 ", srvTid: %" PRId64,nIter,curTid, this->serverTid);
+#endif
         a_sock.MakeSocketBlocking();
         a_sock.SetTimeout(1000);
         char vcBuffer[CPPUTILS_SOCKS_INTERNAL_CHK_STR_LEN+10];
@@ -595,7 +644,9 @@ int tcp_server_base_p::GetStopperData(StopperData* CPPUTILS_ARG_NN a_pStpData, s
                 if (ind >= a_count) {
                     this->clbk = *aClbkIn_p;
                     this->flags.wr.shouldRun = inShouldRun;
-                    cinternal_unnamed_sema_post(&(sema_for_to_finish));
+                    if(sema_for_to_finish_p){
+                        cinternal_unnamed_sema_post(sema_for_to_finish_p);
+                    }
                 }  //  if (ind >= a_count) {
                 return true;
             }
@@ -614,15 +665,20 @@ int tcp_server_base_p::GetStopperData(StopperData* CPPUTILS_ARG_NN a_pStpData, s
         RunServerInline();
     }  //  if (this->flags.rd.serverRunning_false) {
 
-    cinternal_unnamed_sema_wait(&sema_for_to_finish);
-    cinternal_unnamed_sema_destroy(&sema_for_to_finish);
+    if(sema_for_to_finish_p){
+        cinternal_unnamed_sema_wait(sema_for_to_finish_p);
+        cinternal_unnamed_sema_destroy(sema_for_to_finish_p);
+        delete sema_for_to_finish_p;
+    }
 
     pTmpThread->join();
     delete pTmpThread;
     delete clbkExtra_p;
     delete aClbkIn_p;
 
-    CInternalLogDebug("Out: %d",nIter);
+#ifdef CPPSOCKETS_TCP_SERVER_EXTRA_LOGGING_NEEDED
+    CppSocketsTcpSrvLoggerDebugLogLvl(3,"Out: %d, curTid: %" PRId64 ", srvTid: %" PRId64,nIter,curTid, this->serverTid);
+#endif
 
     return 0;
 }
