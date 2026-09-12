@@ -12,7 +12,6 @@
 #include <cinternal/signals.h>
 #include <cinternal/logger.h>
 #include <cinternal/threading.h>
-#include <cinternal/win_threading.h>
 #include <cinternal/disable_compiler_warnings.h>
 #include <stdio.h>
 #include <string.h>
@@ -52,10 +51,17 @@ int main(void)
     aServerBlk.GetStopperData(&stpData, 1);
     fprintf(stdout,"Sync Server port is %d. Going to infinite loop. If client connected, then server will be stopped\n", cnPort);
     fflush(stdout);
-    aServerBlk.StartSyncServer([&aServerBlk](::cpputils::sockets::tcp_socket& a_sock, const sockaddr_in& a_addr) {
+    nIteration = 0;
+    aServerBlk.StartSyncServer([&aServerBlk,&nIteration](::cpputils::sockets::tcp_socket& a_sock, const sockaddr_in& a_addr) {
         ServerAcceptFunctionStatic(a_sock, a_addr);
-        aServerBlk.StopServer();
-        aServerBlk.DestroyServer();
+        if((++nIteration)>5){
+            aServerBlk.StopServer();
+            aServerBlk.DestroyServer();
+            return;
+        }
+        ::cpputils::sockets::StopperData stpData[100];
+        int nRet = aServerBlk.GetStopperData(stpData, nIteration);
+        CInternalLogDebug("int nRet[%d] = aServerBlk.GetStopperData(stpData, nIteration[%d]);",nRet,nIteration);
     });
 
     ::cpputils::sockets::tcp_server_async aServer;

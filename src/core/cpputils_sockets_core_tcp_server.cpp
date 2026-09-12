@@ -123,6 +123,7 @@ public:
     int64_t                             serverTid;
 	CPPUTILS_BISTATE_FLAGS_UN(
         shouldRun,
+        shouldRunBig,
         serverRunning,
         isCreated,
         hasError,
@@ -333,6 +334,7 @@ int tcp_server_sync::StartSyncServer(const TypeConnectClbk& a_clbk)
     }
     m_serv_base_data_p->clbk = a_clbk;
     m_serv_base_data_p->flags.wr.shouldRun = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
+    m_serv_base_data_p->flags.wr.shouldRunBig = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
     m_serv_base_data_p->RunServer();
     return 0;
 }
@@ -446,7 +448,13 @@ void tcp_server_base_p::RunServer()
 
     this->serverTid = CinternalGetCurrentTid();
     this->flags.wr.serverRunning = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
+
     RunServerInline();
+    while(this->flags.rd.shouldRunBig_true){
+        CinternalSleepInterruptableMs(1);
+        RunServerInline();
+    }
+
     this->flags.wr.serverRunning = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
     this->serverTid = 0;
 
@@ -460,13 +468,11 @@ void tcp_server_base_p::RunServer()
 
 
 int64_t tcp_server_base_p::StopServer() noexcept
-{
-    const int64_t currentThreadTid = CinternalGetCurrentTid();
-    if (this->flags.rd.shouldRun_false) {
-        return currentThreadTid;
-    }
+{    
     this->flags.wr.shouldRun = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
+    this->flags.wr.shouldRunBig = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
 
+    const int64_t currentThreadTid = CinternalGetCurrentTid();
     if (currentThreadTid == (this->serverTid)) {
         this->flags.wr.serverRunning = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
         return currentThreadTid;
@@ -723,6 +729,7 @@ int tcp_server_async_p::StartAsyncServerOnOtherThreadAndReturn(const tcp_server_
     this->clbk = a_clbk;
     this->ecClbk = a_ecclb ? (a_ecclb) : ([]()->void {});
     this->flags.wr.shouldRun = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
+    this->flags.wr.shouldRunBig = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
 
     cinternal_unnamed_sema_t sema_to_wait_for_server_start;
     if (cinternal_unnamed_sema_create(&sema_to_wait_for_server_start, 0)) {
