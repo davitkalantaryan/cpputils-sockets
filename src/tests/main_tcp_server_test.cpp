@@ -23,8 +23,8 @@ int main(void)
     ::cpputils::sockets::StopperData stpData;
 
     ::cpputils::sockets::tcp_server_sync aServerBlk;
-    const int cnPort = aServerBlk.CreateServer();  // port = 0 will be used, so system will allocate one
-    //const int cnPort = aServerBlk.CreateBlockingServer(9030);  // port = 0 will be used, so system will allocate one
+    //const int cnPort = aServerBlk.CreateServer(0,false);  // port = 0 will be used, so system will allocate one
+    const int cnPort = aServerBlk.CreateServer(9030,false);  // port = 0 will be used, so system will allocate one
     if (cnPort < 0) {
         fprintf(stderr, "negative port = %d\n", cnPort);
         return 1;

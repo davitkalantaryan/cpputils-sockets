@@ -137,6 +137,7 @@ inline int64_t tcp_server_base_p::StopServerInline() noexcept
     this->flags.wr.shouldRun = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
 
     if (currentThreadTid == (this->serverTid)) {
+        this->flags.wr.serverRunning = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
         return currentThreadTid;
     }
 
@@ -278,7 +279,7 @@ int tcp_server_async::CreateAndStartAsyncServerOnOtherThreadAndReturn(
 {
     if(m_serv_base_data_p->flags.rd.isCreated_false){
         const int cnCrtRes = m_serv_base_data_p->CreateServer(a_nPort,a_bOnlyLocalHost,a_bReuse);
-        if(cnCrtRes<1){
+        if(cnCrtRes){
             return -1;
         }
     }  //  if(m_serv_base_data_p->flags.rd.isCreated_false){
@@ -435,7 +436,6 @@ void tcp_server_base_p::RunServerInline() noexcept
 void tcp_server_base_p::DestroyServer() noexcept
 {
     if(this->flags.rd.isCreated_false){
-        CInternalLogWarning("Server is not created to destroy it");
         return;
     }
 
@@ -542,23 +542,21 @@ int tcp_server_base_p::GetStopperData(StopperData* CPPUTILS_ARG_NN a_pStpData, s
         return -1;
     }
 
-    cinternal_unnamed_sema_t* sema_for_to_finish_p = nullptr;
-    cinternal_unnamed_sema_t sema_for_to_finish;
-    if (this->flags.rd.serverRunning_true) {
-        const int64_t currentThreadTid = CinternalGetCurrentTid();
-        if (currentThreadTid != (this->serverTid)) {
-            if (cinternal_unnamed_sema_create(&sema_for_to_finish, 0)) {
-                // log on semaphore creation failure
-                return -1;
-            }
-            sema_for_to_finish_p = &sema_for_to_finish;
-        }
-    }  //  if (this->flags.rd.serverRunning_false) {
+    static int nIter =0;
+    const int curTid = (int)CinternalGetCurrentTid();
+    CInternalLogDebug("In: %d, tid: %d",++nIter,curTid);
+
+    cinternal_unnamed_sema_t* const sema_for_to_finish_p = new cinternal_unnamed_sema_t();
+    if (cinternal_unnamed_sema_create(sema_for_to_finish_p, 0)) {
+        // log on semaphore creation failure
+        delete sema_for_to_finish_p;
+        return -1;
+    }
 
     const int cnPort = ntohs(this->servAddr.sin_port);
     const uint64_t inShouldRun = this->flags.wr.shouldRun;
     this->flags.wr.shouldRun = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
-    ::std::thread* const pTmpThread = new ::std::thread([a_pStpData, a_count,cnPort,&sema_for_to_finish_p]() {
+    ::std::thread* const pTmpThread = new ::std::thread([a_pStpData, a_count,cnPort]() {
         tcp_socket pollSocket;
         int rtn = -1;
         for (size_t ind(0); ind < a_count; ) {
@@ -578,15 +576,14 @@ int tcp_server_base_p::GetStopperData(StopperData* CPPUTILS_ARG_NN a_pStpData, s
             pollSocket.GetSysSocketAndRelease(&aSysSock);
             a_pStpData[ind++].stp.sock = aSysSock.sock;
         }  //  while (rtn) {
-        if (sema_for_to_finish_p) {
-            cinternal_unnamed_sema_post(sema_for_to_finish_p);
-        }
     });  //  ::std::thread tmpThread([&stpSocket,cnPort]() {
     
     const tcp_server_base::TypeConnectClbk* const aClbkIn_p = new tcp_server_base::TypeConnectClbk(this->clbk);
     typedef ::std::function<bool(tcp_socket&)>	TypeConnectExtraClbk;
-    size_t ind(0);
-    const TypeConnectExtraClbk* const clbkExtra_p = new TypeConnectExtraClbk([this,a_pStpData,a_count, aClbkIn_p, inShouldRun, pTmpThread,&ind](tcp_socket& a_sock) ->bool{
+    size_t* const ind_p = new size_t(0);
+    const TypeConnectExtraClbk* const clbkExtra_p = new TypeConnectExtraClbk([this,a_pStpData,a_count, aClbkIn_p, inShouldRun,ind_p,sema_for_to_finish_p](tcp_socket& a_sock) ->bool{
+        const int curTid = (int)CinternalGetCurrentTid();
+        CInternalLogDebug("Clbk: %d, tid: %d",nIter,curTid);
         a_sock.MakeSocketBlocking();
         a_sock.SetTimeout(1000);
         char vcBuffer[CPPUTILS_SOCKS_INTERNAL_CHK_STR_LEN+10];
@@ -595,12 +592,11 @@ int tcp_server_base_p::GetStopperData(StopperData* CPPUTILS_ARG_NN a_pStpData, s
             if (memcmp(vcBuffer, CPPUTILS_SOCKS_INTERNAL_CHK_STR, CPPUTILS_SOCKS_INTERNAL_CHK_STR_LEN) == 0) {
                 SysSocket aSysSock;
                 a_sock.GetSysSocketAndRelease(&aSysSock);
-                a_pStpData[ind++].pol.sock = aSysSock.sock;
-                if (ind >= a_count) {
+                a_pStpData[(*ind_p)++].pol.sock = aSysSock.sock;
+                if ((*ind_p) >= a_count) {
                     this->clbk = *aClbkIn_p;
-                    pTmpThread->join();
-                    delete pTmpThread;
                     this->flags.wr.shouldRun = inShouldRun;
+                    cinternal_unnamed_sema_post(sema_for_to_finish_p);
                 }  //  if (ind >= a_count) {
                 return true;
             }
@@ -617,18 +613,20 @@ int tcp_server_base_p::GetStopperData(StopperData* CPPUTILS_ARG_NN a_pStpData, s
 
     if (this->flags.rd.serverRunning_false) {
         RunServerInline();
-        delete clbkExtra_p;
-        delete aClbkIn_p;
-        return 0;
     }  //  if (this->flags.rd.serverRunning_false) {
 
-    if (sema_for_to_finish_p) {
-        cinternal_unnamed_sema_wait(sema_for_to_finish_p);
-        cinternal_unnamed_sema_destroy(sema_for_to_finish_p);
-    }
+    pTmpThread->join();
+    delete pTmpThread;
 
+    cinternal_unnamed_sema_wait(sema_for_to_finish_p);
+    cinternal_unnamed_sema_destroy(sema_for_to_finish_p);
+    delete sema_for_to_finish_p;
+
+    delete ind_p;
     delete clbkExtra_p;
     delete aClbkIn_p;
+
+    CInternalLogDebug("Out: %d",nIter);
 
     return 0;
 }
