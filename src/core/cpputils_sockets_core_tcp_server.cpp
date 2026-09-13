@@ -901,4 +901,11 @@ int CStprSocks::waitForAction(size_t a_rawSocksCount, ptrdiff_t* a_otherRawSocks
 }
 
 
+
+void CStprSocks::wait(int a_timeoutMs) const noexcept
+{
+    waitForAction(-1, a_timeoutMs);
+}
+
+
 }}  //  namespace cpputils { namespace sockets{

@@ -146,7 +146,7 @@ public:
     // 0   means timeout,
     // <0  poll error, probably EINTR, or
     int  waitForAction(size_t a_rawSocksCount, ptrdiff_t* a_otherRawSocks_p, pollfd* CPPUTILS_ARG_NN a_pollfdBuff_p, bool* CPPUTILS_ARG_NN a_isStp_p, int a_timeoutMs=-1) const noexcept;
-    // struct pollfd
+    void wait(int a_timeoutMs = -1) const noexcept;
 
 private:
     CStprSocks_p*   m_data_p;
