@@ -754,23 +754,64 @@ int tcp_server_async_p::StartAsyncServerOnOtherThreadAndReturn(const tcp_server_
 
 CStprSocks::~CStprSocks() noexcept
 {
-    if(m_data_p){
-        m_data_p->wUp.Close();
-        tcp_socket sctPoll(&(m_data_p->pol));
-        sctPoll.Close();
-    }  //  if(m_data_p){
+    CloseSockets();
 }
 
 
-CStprSocks::CStprSocks(const ::cpputils::sockets::StopperData& a_stpDt)
-:
-    m_data_p(new CStprSocks_p())
+CStprSocks::CStprSocks() noexcept
+    :
+    m_data_p(nullptr)
 {
+}
+
+
+CStprSocks::CStprSocks(const StopperData& a_stpDt)
+:
+    m_data_p(nullptr)
+{
+    SetSockets(a_stpDt);
+}
+
+
+CStprSocks::CStprSocks(CStprSocks&& a_mM) noexcept
+    :
+    m_data_p(a_mM.m_data_p)
+{
+    a_mM.m_data_p = nullptr;
+}
+
+
+
+CStprSocks& CStprSocks::operator=(CStprSocks&& a_mM) noexcept
+{
+    CStprSocks_p* const pThis = m_data_p;
+    m_data_p = a_mM.m_data_p;
+    a_mM.m_data_p = pThis;
+    return *this;
+}
+
+
+void CStprSocks::SetSockets(const StopperData& a_stpDt)
+{
+    CloseSockets();
+    m_data_p = new CStprSocks_p();
     m_data_p->pol = a_stpDt.pol;
     m_data_p->wUp.ResetFromSysSock(&(a_stpDt.stp));
     tcp_socket sctPoll(&(a_stpDt.pol));
     sctPoll.MakeSocketNonBlocking();
     sctPoll.Release();
+}
+
+
+void CStprSocks::CloseSockets() noexcept
+{
+    if (m_data_p) {
+        m_data_p->wUp.Close();
+        tcp_socket sctPoll(&(m_data_p->pol));
+        sctPoll.Close();
+        delete m_data_p;
+        m_data_p = nullptr;
+    }  //  if(m_data_p){
 }
 
 

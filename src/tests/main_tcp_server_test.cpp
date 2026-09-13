@@ -27,7 +27,7 @@ int main(void)
     CinternalLoggerSetCurrentLogLevel(10);
 
 #ifdef _WIN32
-    const CinternalSimpleSignalHandlerPointer initialSigintPointer = signal(CinternalSignalSIGPIPE, [](int) {});
+    const CinternalSimpleSignalHandlerPointer initialSigintPointer = signal(CinternalSignalForNetworkingFailedPipe, [](int) {});
 #else
     struct sigaction initialSigpipeAction;
     struct sigaction newAction;
@@ -35,7 +35,7 @@ int main(void)
     sigemptyset(&newAction.sa_mask);
     newAction.sa_flags = 0;
     newAction.sa_handler = [](int){};
-    sigaction(CinternalSignalSIGPIPE, &newAction, &initialSigpipeAction);
+    sigaction(CinternalSignalForNetworkingFailedPipe, &newAction, &initialSigpipeAction);
 #endif
 
     int nIteration;
@@ -60,7 +60,7 @@ int main(void)
             return;
         }
         ::cpputils::sockets::StopperData stpData[100];
-        int nRet = aServerBlk.GetStopperData(stpData, nIteration);
+        int nRet = aServerBlk.GetStopperData(stpData, (size_t)nIteration);
         CInternalLogDebug("int nRet[%d] = aServerBlk.GetStopperData(stpData, nIteration[%d]);",nRet,nIteration);
     });
 
@@ -71,7 +71,7 @@ int main(void)
         if((++nIteration)>1){
             aServer.StopServer();
             aServer.DestroyServer();
-            CinternalInterruptThread(curThreadHandle, CinternalSignalSIGPIPE, &InterruptFunction);
+            CinternalInterruptThread(curThreadHandle, CinternalSignalToSendUsr1, &InterruptFunction);
         }
         else{
             ::cpputils::sockets::StopperData stpData;
@@ -94,9 +94,9 @@ int main(void)
     cinternal_thread_close_cur_thread_handle(curThreadHandle);
 
 #ifdef _WIN32
-    signal(CinternalSignalSIGPIPE, initialSigintPointer);
+    signal(CinternalSignalForNetworkingFailedPipe, initialSigintPointer);
 #else
-    sigaction(CinternalSignalSIGPIPE, &initialSigpipeAction, nullptr);
+    sigaction(CinternalSignalForNetworkingFailedPipe, &initialSigpipeAction, nullptr);
 #endif
 
 	return 0;

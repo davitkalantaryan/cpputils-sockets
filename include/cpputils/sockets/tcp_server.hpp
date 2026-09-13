@@ -126,7 +126,13 @@ class CPPUTILS_DLL_PRIVATE CStprSocks
 {
 public:
     ~CStprSocks() noexcept;
+    CStprSocks() noexcept;
     CStprSocks(const StopperData& a_stpDt);
+    CStprSocks(CStprSocks&& a_mM) noexcept;
+    CStprSocks& operator=(CStprSocks&& a_mM) noexcept;
+
+    void SetSockets(const StopperData& a_stpDt);
+    void CloseSockets() noexcept;
 
     void interrupBlockingSocksCall() const noexcept;
     // >0  returns revent of the poll fd for argument socket
@@ -147,9 +153,7 @@ private:
 
 private:
     CStprSocks(const CStprSocks&)=delete;
-    CStprSocks(CStprSocks&&)=delete;
     CStprSocks& operator=(const CStprSocks&)=delete;
-    CStprSocks& operator=(CStprSocks&&)=delete;
 };
 
 
