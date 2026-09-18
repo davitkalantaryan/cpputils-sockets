@@ -148,8 +148,8 @@ int tcp_socket::Connect(const char* CPPUTILS_ARG_NN a_svrName, int a_port, int a
         return -1;
     }
 
-    const auto* sin = reinterpret_cast<const sockaddr_in*>(result->ai_addr);
-    addr.sin_addr = sin->sin_addr;
+    const sockaddr_in* const resultSin = reinterpret_cast<const sockaddr_in*>(result->ai_addr);
+    addr.sin_addr = resultSin->sin_addr;
 
     freeaddrinfo(result);
 
