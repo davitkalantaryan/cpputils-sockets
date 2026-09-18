@@ -128,11 +128,36 @@ int tcp_socket::Connect(const char* CPPUTILS_ARG_NN a_svrName, int a_port, int a
 		return -1;
 	}
 
-	unsigned long ha;
 	struct sockaddr_in addr;
 	memset(&addr, 0, sizeof(struct sockaddr_in));
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons((u_short)a_port);
+
+
+
+
+    struct addrinfo hints = {};
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+
+    struct addrinfo* result = nullptr;
+
+    const int err = getaddrinfo(a_svrName, nullptr, &hints, &result);
+    if (err != 0 || !result) {
+        CpputilsCloseSocket(m_sock_data_p->sock);
+        m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
+        return -1;
+    }
+
+    const auto* sin = reinterpret_cast<const sockaddr_in*>(result->ai_addr);
+    addr.sin_addr = sin->sin_addr;
+
+    freeaddrinfo(result);
+
+
+#if 0
+
+    unsigned long ha;
 
 #ifdef _MSC_VER
 #pragma warning (push)
@@ -157,6 +182,8 @@ int tcp_socket::Connect(const char* CPPUTILS_ARG_NN a_svrName, int a_port, int a
 #endif
 
 	memcpy(&addr.sin_addr, &ha, sizeof(ha));
+
+#endif  //  #if 0
 
 	// let's make socket non blocking
 	MakeSocketNonBlocking();
