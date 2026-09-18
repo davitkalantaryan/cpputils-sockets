@@ -133,9 +133,8 @@ int tcp_socket::Connect(const char* CPPUTILS_ARG_NN a_svrName, int a_port, int a
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons((u_short)a_port);
 
-
-
-
+    // new approach of getting sin_addr, based on hostname or ip address
+    // using getaddrinfo instead of gethostbyname & inet_ntoa
     struct addrinfo hints = {};
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
@@ -153,37 +152,6 @@ int tcp_socket::Connect(const char* CPPUTILS_ARG_NN a_svrName, int a_port, int a
     addr.sin_addr = sin->sin_addr;
 
     freeaddrinfo(result);
-
-
-#if 0
-
-    unsigned long ha;
-
-#ifdef _MSC_VER
-#pragma warning (push)
-#pragma warning (disable:4996)
-#endif
-	if ((ha = inet_addr(a_svrName)) == INADDR_NONE) {
-		struct hostent* hostent_ptr = gethostbyname(a_svrName);  // making DNS querry
-		if (!hostent_ptr) {
-			CpputilsCloseSocket(m_sock_data_p->sock);
-			m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
-			return -1;
-		}
-		a_svrName = inet_ntoa(*(struct in_addr*)hostent_ptr->h_addr_list[0]);
-		if ((ha = inet_addr(a_svrName)) == INADDR_NONE) {
-			CpputilsCloseSocket(m_sock_data_p->sock);
-			m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
-			return -1;
-		}
-	}
-#ifdef _MSC_VER
-#pragma warning (pop)
-#endif
-
-	memcpy(&addr.sin_addr, &ha, sizeof(ha));
-
-#endif  //  #if 0
 
 	// let's make socket non blocking
 	MakeSocketNonBlocking();
