@@ -875,17 +875,22 @@ int CStprSocks::waitForAction(const tcp_socket& a_otherSock, int a_timeoutMs) co
 }
 
 
-// >0  returns number of FDs has read data
-// 0   means timeout,
-// <0  poll error, probably EINTR, or
-int CStprSocks::waitForAction(size_t a_rawSocksCount, ptrdiff_t* a_otherRawSocks_p, pollfd* CPPUTILS_ARG_NN a_pollfdBuff_p, bool* CPPUTILS_ARG_NN a_isStp_p, int a_timeoutMs) const noexcept
+int CStprSocks::waitForActionWrp(size_t a_rawSocksCount, ptrdiff_t* a_otherRawSocks_p, pollfd* CPPUTILS_ARG_NN a_pollfdBuff_p, bool* CPPUTILS_ARG_NN a_isStp_p, int a_timeoutMs) const noexcept
 {
-    for(size_t ind(0); ind<a_rawSocksCount; ++ind){
+    for (size_t ind(0); ind < a_rawSocksCount; ++ind) {
         a_pollfdBuff_p[ind].fd = (socket_t)a_otherRawSocks_p[ind];
         a_pollfdBuff_p[ind].events = POLLIN | POLLRDNORM | POLLRDBAND;
         a_pollfdBuff_p[ind].revents = 0;
     }
+    return waitForActionRaw(a_rawSocksCount,a_pollfdBuff_p,a_isStp_p,a_timeoutMs);
+}
 
+
+// >0  returns number of FDs has read data
+// 0   means timeout,
+// <0  poll error, probably EINTR, or
+int CStprSocks::waitForActionRaw(size_t a_rawSocksCount, pollfd* CPPUTILS_ARG_NN a_pollfdBuff_p, bool* CPPUTILS_ARG_NN a_isStp_p, int a_timeoutMs) const noexcept
+{
     a_pollfdBuff_p[a_rawSocksCount].fd = m_data_p->pol.sock;
     a_pollfdBuff_p[a_rawSocksCount].events = POLLIN | POLLRDNORM | POLLRDBAND;
     a_pollfdBuff_p[a_rawSocksCount].revents = 0;

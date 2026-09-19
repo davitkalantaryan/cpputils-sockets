@@ -141,11 +141,13 @@ public:
     // -2  stopping was done
     int  waitForAction(ptrdiff_t a_otherRawSock, int a_timeoutMs=-1) const noexcept;
     int  waitForAction(const tcp_socket& a_otherSock, int a_timeoutMs=-1) const noexcept;
-    //int  waitForAction(size_t a_rawSocksCount, ptrdiff_t* a_otherRawSocks_p, int a_timeoutMs=-1) const noexcept;
+    
+    // In this function five all socket handles in pollfd struct
     // >0  returns number of FDs has read data
     // 0   means timeout,
     // <0  poll error, probably EINTR, or
-    int  waitForAction(size_t a_rawSocksCount, ptrdiff_t* a_otherRawSocks_p, pollfd* CPPUTILS_ARG_NN a_pollfdBuff_p, bool* CPPUTILS_ARG_NN a_isStp_p, int a_timeoutMs=-1) const noexcept;
+    int  waitForActionRaw(size_t a_rawSocksCount, pollfd* CPPUTILS_ARG_NN a_pollfdBuff_p, bool* CPPUTILS_ARG_NN a_isStp_p, int a_timeoutMs=-1) const noexcept;
+    int  waitForActionWrp(size_t a_rawSocksCount, ptrdiff_t* a_otherRawSocks_p, pollfd* CPPUTILS_ARG_NN a_pollfdBuff_p, bool* CPPUTILS_ARG_NN a_isStp_p, int a_timeoutMs = -1) const noexcept;
     void wait(int a_timeoutMs = -1) const noexcept;
 
 private:
