@@ -21,9 +21,9 @@ int main(int a_argc, char* a_argv[])
     }
     
 #if 1
-    if (aSocket.Connect(cpcServerHost, 9030, 1000)) {
+    if (aSocket.ConnectV4(cpcServerHost, 9030, 1000)) {
 #else
-    if (aSocket.Connect(cpcServerHost, 41837, 1000)) {
+    if (aSocket.ConnectV4(cpcServerHost, 41837, 1000)) {
 #endif
 		fprintf(stderr, "unable to connect\n");
 		return 1;

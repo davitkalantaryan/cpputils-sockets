@@ -112,10 +112,22 @@ static void InterruptFunction(CinternalInterruptArgType1)
 static void ServerAcceptFunctionStatic(::cpputils::sockets::tcp_socket& a_sock, const sockaddr_in& a_addr)
 {
     char vcBuffer[128];
+    char vcIp4addr[128];
+    char vcIp6addr[128];
     ::cpputils::sockets::tcp_socket aSocket;
-    const char* cpcHostName = ::cpputils::sockets::GetIPV4Address(a_addr);
-    if (cpcHostName) {
-        fprintf(stdout, "Client host %s!\n", cpcHostName);
+    const char* cpcIp4Addr = ::cpputils::sockets::GetIPV4Address(a_addr, vcIp4addr,127);
+    if (cpcIp4Addr) {
+        fprintf(stdout, "Client host ipv4: %s\n", cpcIp4Addr);
+        fflush(stdout);
+    }
+    const char* cpcIp6Addr = ::cpputils::sockets::GetIpV6Address((const sockaddr_in6&)a_addr, vcIp6addr, 127);
+    if (cpcIp6Addr) {
+        fprintf(stdout, "Client host ipv6: %s\n", cpcIp6Addr);
+        fflush(stdout);
+    }
+    const char* cpcHostname = ::cpputils::sockets::GetHostName((const sockaddr&)a_addr, sizeof(const sockaddr_in), vcBuffer, 127);
+    if (cpcHostname) {
+        fprintf(stdout, "Client host hostname: %s\n", cpcHostname);
         fflush(stdout);
     }
     aSocket.ReplaceWithOtherSocket(&a_sock); // after this one can keep aNewSock permanently

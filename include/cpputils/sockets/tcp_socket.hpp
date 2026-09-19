@@ -13,7 +13,11 @@
 #include <stddef.h>
 #include <cinternal/undisable_compiler_warnings.h>
 
+
+struct sockaddr;
 struct sockaddr_in;
+struct sockaddr_in6;
+
 
 namespace cpputils { namespace sockets{
 
@@ -30,7 +34,7 @@ public:
     tcp_socket(tcp_socket&& a_mM);
 	tcp_socket& operator=(tcp_socket&& a_mM) noexcept;
 
-    int  Connect(const char* CPPUTILS_ARG_NN a_svrName, int a_port, int a_connectionTimeoutMs, sockaddr_in* a_sockAddr_p=nullptr) noexcept;
+    int  ConnectV4(const char* CPPUTILS_ARG_NN a_svrName, int a_port, int a_connectionTimeoutMs, sockaddr_in* a_sockAddr_p=nullptr) noexcept;
     void Close() noexcept;
     int  receiveAll(void* a_pBuffer, size_t a_nSize)const noexcept;
     int  receiveSngl(void* a_pBuffer, size_t a_nSize)const noexcept;
@@ -65,7 +69,9 @@ private:
 };
 
 
-CSOCKETS_EXPORT const char* GetIPV4Address(const sockaddr_in& a_addr) noexcept;
+CSOCKETS_EXPORT const char* GetIPV4Address(const sockaddr_in& a_addr, char* a_buffer, size_t a_bufferSize) noexcept;
+CSOCKETS_EXPORT const char* GetIpV6Address(const sockaddr_in6& a_addr, char* a_buffer, size_t a_bufferSize) noexcept;
+CSOCKETS_EXPORT const char* GetHostName(const sockaddr& a_addr, size_t a_sockAddrLen, char* a_buffer, size_t a_bufferSize) noexcept;
 
 
 }}  //  namespace cpputils { namespace sockets{

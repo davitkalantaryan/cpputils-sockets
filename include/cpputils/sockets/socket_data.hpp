@@ -62,12 +62,14 @@ typedef int			sndrcv_inp_cnt;
 typedef int			sndrcv_ret_cnt;
 typedef int			cpputils_socklen_t;
 typedef ULONG		cpputils_poll_arg2;
+typedef DWORD       getnminfoarg_t;
 #else
 typedef int			socket_t;
 typedef size_t		sndrcv_inp_cnt;
 typedef ssize_t		sndrcv_ret_cnt;
 typedef socklen_t   cpputils_socklen_t;
 typedef nfds_t 		cpputils_poll_arg2;
+typedef size_t      getnminfoarg_t;
 #endif
 
 

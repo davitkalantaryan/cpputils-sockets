@@ -56,6 +56,10 @@ namespace cpputils { namespace sockets{
 
 #define cpputilsAsynSrvDt(_data)                static_cast<tcp_server_async_p*>(_data)
 
+#define CPPSOCKETS_ADDR_BUFF_SIZE               4096
+static_assert(CPPSOCKETS_ADDR_BUFF_SIZE>sizeof(sockaddr_in),"Buffer shall b e enough large to contain sockaddr_in data");
+static_assert(CPPSOCKETS_ADDR_BUFF_SIZE>sizeof(sockaddr_in6),"Buffer shall b e enough large to contain sockaddr_in6 data");
+
 
 #ifdef _MSC_VER
 #pragma warning (disable:5039)
@@ -143,7 +147,7 @@ public:
 
 private:
     inline void RunServerInline();
-    inline void ServerAcceptInline(struct sockaddr_in* CPPUTILS_ARG_NN a_bufForRemAddress);
+    inline void ServerAcceptInline(struct sockaddr* CPPUTILS_ARG_NN a_bufForRemAddress);
 
 private:
     tcp_server_base_p(const tcp_server_base_p&) = delete;
@@ -362,7 +366,7 @@ int tcp_server_sync::CreateAndStartSyncServerOnThisThread(
 
 /*--------------------------------------------------------------------------------------------------------------*/
 
-inline void tcp_server_base_p::ServerAcceptInline(struct sockaddr_in* CPPUTILS_ARG_NN a_bufForRemAddress)
+inline void tcp_server_base_p::ServerAcceptInline(struct sockaddr* CPPUTILS_ARG_NN a_bufForRemAddress)
 {
     struct pollfd vPollFd[4];
     cpputils_poll_arg2 nPollFdCount = 1;
@@ -392,13 +396,13 @@ inline void tcp_server_base_p::ServerAcceptInline(struct sockaddr_in* CPPUTILS_A
             aSock.Release();
         }
         if (vPollFd[0].revents & POLLIN) {
-            cpputils_socklen_t addr_len = sizeof(struct sockaddr_in);
-            const socket_t clntSockDescrpt = accept(this->serv, (struct sockaddr*)a_bufForRemAddress, &addr_len);
+            cpputils_socklen_t addr_len = CPPSOCKETS_ADDR_BUFF_SIZE;
+            const socket_t clntSockDescrpt = accept(this->serv,a_bufForRemAddress, &addr_len);
             if (!CHECK_FOR_SOCK_INVALID(clntSockDescrpt)) {
                 const struct SysSocket clientSocket = { clntSockDescrpt };
                 tcp_socket aIncommingSocket(&clientSocket);
                 aIncommingSocket.MakeSocketBlocking();
-                this->clbk(aIncommingSocket, *a_bufForRemAddress);
+                this->clbk(aIncommingSocket, *((struct sockaddr_in*)a_bufForRemAddress));
                 aIncommingSocket.Close();
             }  //  if (!CHECK_FOR_SOCK_INVALID(clntSockDescrpt)) {
         }  //  if (vPollFd[0].revents & POLLIN) {
@@ -410,9 +414,15 @@ inline void tcp_server_base_p::ServerAcceptInline(struct sockaddr_in* CPPUTILS_A
 
 void tcp_server_base_p::RunServerInline()
 {
-    sockaddr_in remoteAddress;
+    union {
+        sockaddr        anyAddr;
+        sockaddr_in     ipv4;
+        sockaddr_in6    ipv6;
+        char            vcAddrBuff[CPPSOCKETS_ADDR_BUFF_SIZE];
+    }inAddr;
+
     while (this->flags.rd.shouldRun_true && this->flags.rd.hasError_false) {
-        ServerAcceptInline(&remoteAddress);
+        ServerAcceptInline(&(inAddr.anyAddr));
     }
 }
 
@@ -630,7 +640,7 @@ int tcp_server_base_p::GetStopperData(StopperData* CPPUTILS_ARG_NN a_pStpData, s
         int rtn = -1;
         for (size_t ind(0); ind < a_count; ) {
             clientAddr = {};
-            rtn = pollSocket.Connect("localhost", cnPort, -1,&clientAddr);
+            rtn = pollSocket.ConnectV4("localhost", cnPort, -1,&clientAddr);
             if (rtn) {
                 pollSocket.Close();
                 CinternalSleepInterruptableMs(10);

@@ -116,7 +116,7 @@ static bool SOCKET_INPROGRESS_INLINE(void) noexcept {
 }
 
 
-int tcp_socket::Connect(const char* CPPUTILS_ARG_NN a_svrName, int a_port, int a_connectionTimeoutMs, sockaddr_in* a_sockAddr_p) noexcept
+int tcp_socket::ConnectV4(const char* CPPUTILS_ARG_NN a_svrName, int a_port, int a_connectionTimeoutMs, sockaddr_in* a_sockAddr_p) noexcept
 {
 	if (m_sock_data_p->sock != CPPUTILS_SOCKS_CLOSE_SOCK) {
 		CpputilsCloseSocket(m_sock_data_p->sock);
@@ -451,16 +451,50 @@ int tcp_socket::timeoutMs()const noexcept
 
 /*--------------------------------------------------------------------------------------------------------------*/
 
-CSOCKETS_EXPORT const char* GetIPV4Address(const sockaddr_in& a_addr) noexcept
+CSOCKETS_EXPORT const char* GetIPV4Address(const sockaddr_in& a_addr, char* a_buffer, size_t a_bufferSize) noexcept
 {
-#ifdef _MSC_VER
-#pragma warning (push)
-#pragma warning (disable:4996)
-#endif
-    return ::inet_ntoa(a_addr.sin_addr);
-#ifdef _MSC_VER
-#pragma warning (pop)
-#endif
+    if (!a_buffer || (a_bufferSize == 0)) {
+        return nullptr;
+    }
+
+    a_buffer[0] = '\0';
+    if (!inet_ntop(AF_INET,&a_addr.sin_addr,a_buffer,a_bufferSize)) {
+        return nullptr;
+    }
+
+    return a_buffer;
+}
+
+
+CSOCKETS_EXPORT const char* GetIpV6Address(const sockaddr_in6& a_addr,char* a_buffer,size_t a_bufferSize) noexcept
+{
+    if (!a_buffer || (a_bufferSize == 0)) {
+        return nullptr;
+    }
+
+    a_buffer[0] = '\0';
+    if (!inet_ntop(AF_INET6,&a_addr.sin6_addr,a_buffer,a_bufferSize)) {
+        return nullptr;
+    }
+
+    return a_buffer;
+}
+
+
+CSOCKETS_EXPORT const char* GetHostName(const sockaddr& a_addr, size_t a_sockAddrLen, char* a_buffer,size_t a_bufferSize) noexcept
+{
+    if (!a_buffer || (a_bufferSize == 0)) {
+        return nullptr;
+    }
+
+    a_buffer[0] = '\0';
+    const int result = ::getnameinfo(&a_addr,static_cast<socklen_t>(a_sockAddrLen),a_buffer,static_cast<getnminfoarg_t>(a_bufferSize),nullptr,0,NI_NAMEREQD);
+    if (result != 0) {
+        a_buffer[0] = '\0';
+        return nullptr;
+    }
+
+    return a_buffer;
 }
 
 
