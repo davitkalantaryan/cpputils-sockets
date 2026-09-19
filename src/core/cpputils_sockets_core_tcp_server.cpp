@@ -108,12 +108,15 @@ static void SigHandlerFunction(int a_signo) noexcept {
 class CPPUTILS_DLL_PRIVATE CStprSocks_p
 {
 public:
-    CStprSocks_p() = default;
+    CStprSocks_p();
+    void Swap(CStprSocks_p* CPPUTILS_ARG_NN a_pOther);
     ::cpputils::sockets::tcp_socket     wUp;
     ::cpputils::sockets::SysSocket      pol;
 private:
     CStprSocks_p(const CStprSocks_p&) = delete;
+    CStprSocks_p(CStprSocks_p&&) = delete;
     CStprSocks_p& operator=(const CStprSocks_p&) = delete;
+    CStprSocks_p& operator=(CStprSocks_p&&) = delete;
 };
 
 
@@ -765,19 +768,20 @@ int tcp_server_async_p::StartAsyncServerOnOtherThreadAndReturn(const tcp_server_
 CStprSocks::~CStprSocks() noexcept
 {
     CloseSockets();
+    delete m_data_p;
 }
 
 
 CStprSocks::CStprSocks() noexcept
     :
-    m_data_p(nullptr)
+    m_data_p(new CStprSocks_p())
 {
 }
 
 
 CStprSocks::CStprSocks(const StopperData& a_stpDt)
 :
-    m_data_p(nullptr)
+    m_data_p(new CStprSocks_p())
 {
     SetSockets(a_stpDt);
 }
@@ -785,18 +789,16 @@ CStprSocks::CStprSocks(const StopperData& a_stpDt)
 
 CStprSocks::CStprSocks(CStprSocks&& a_mM) noexcept
     :
-    m_data_p(a_mM.m_data_p)
+    m_data_p(new CStprSocks_p())
 {
-    a_mM.m_data_p = nullptr;
+    m_data_p->Swap(a_mM.m_data_p);
 }
 
 
 
 CStprSocks& CStprSocks::operator=(CStprSocks&& a_mM) noexcept
 {
-    CStprSocks_p* const pThis = m_data_p;
-    m_data_p = a_mM.m_data_p;
-    a_mM.m_data_p = pThis;
+    m_data_p->Swap(a_mM.m_data_p);
     return *this;
 }
 
@@ -804,7 +806,6 @@ CStprSocks& CStprSocks::operator=(CStprSocks&& a_mM) noexcept
 void CStprSocks::SetSockets(const StopperData& a_stpDt)
 {
     CloseSockets();
-    m_data_p = new CStprSocks_p();
     m_data_p->pol = a_stpDt.pol;
     m_data_p->wUp.ResetFromSysSock(&(a_stpDt.stp));
     tcp_socket sctPoll(&(a_stpDt.pol));
@@ -815,13 +816,9 @@ void CStprSocks::SetSockets(const StopperData& a_stpDt)
 
 void CStprSocks::CloseSockets() noexcept
 {
-    if (m_data_p) {
-        m_data_p->wUp.Close();
-        tcp_socket sctPoll(&(m_data_p->pol));
-        sctPoll.Close();
-        delete m_data_p;
-        m_data_p = nullptr;
-    }  //  if(m_data_p){
+    m_data_p->wUp.Close();
+    tcp_socket sctPoll(&(m_data_p->pol));
+    sctPoll.Close();
 }
 
 
@@ -915,6 +912,21 @@ int CStprSocks::waitForAction(size_t a_rawSocksCount, ptrdiff_t* a_otherRawSocks
 void CStprSocks::wait(int a_timeoutMs) const noexcept
 {
     waitForAction(-1, a_timeoutMs);
+}
+
+
+CStprSocks_p::CStprSocks_p()
+{
+    this->pol.sock = CPPUTILS_SOCKS_CLOSE_SOCK;
+}
+
+
+void CStprSocks_p::Swap(CStprSocks_p* CPPUTILS_ARG_NN a_pOther)
+{
+    const ::cpputils::sockets::SysSocket thisPol = this->pol;
+    this->wUp.ReplaceWithOtherSocket(&(a_pOther->wUp));
+    this->pol = a_pOther->pol;
+    a_pOther->pol = thisPol;
 }
 
 

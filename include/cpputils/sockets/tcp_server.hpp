@@ -149,7 +149,7 @@ public:
     void wait(int a_timeoutMs = -1) const noexcept;
 
 private:
-    CStprSocks_p*   m_data_p;
+    CStprSocks_p* const m_data_p;
 
 private:
     CStprSocks(const CStprSocks&)=delete;
