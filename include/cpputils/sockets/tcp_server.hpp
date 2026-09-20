@@ -131,7 +131,7 @@ public:
     CStprSocks(CStprSocks&& a_mM) noexcept;
     CStprSocks& operator=(CStprSocks&& a_mM) noexcept;
 
-    void SetSockets(const StopperData& a_stpDt);
+    void SetSockets(const StopperData& a_stpDt) noexcept;
     void CloseSockets() noexcept;
 
     void interrupBlockingSocksCall() const noexcept;

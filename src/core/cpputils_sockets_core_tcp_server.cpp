@@ -803,7 +803,7 @@ CStprSocks& CStprSocks::operator=(CStprSocks&& a_mM) noexcept
 }
 
 
-void CStprSocks::SetSockets(const StopperData& a_stpDt)
+void CStprSocks::SetSockets(const StopperData& a_stpDt) noexcept
 {
     CloseSockets();
     m_data_p->pol = a_stpDt.pol;
