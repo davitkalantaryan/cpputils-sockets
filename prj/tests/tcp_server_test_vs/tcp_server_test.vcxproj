@@ -174,7 +174,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>EnableAllWarnings</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CPPSOCKETS_TCP_SERVER_EXTRA_LOGGING_NEEDED;CPPSOCKETS_TCP_SERVER_USE_CINTERNAL_LOGGER;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
@@ -186,7 +186,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <ClCompile>
       <WarningLevel>EnableAllWarnings</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CPPSOCKETS_TCP_SERVER_EXTRA_LOGGING_NEEDED;CPPSOCKETS_TCP_SERVER_USE_CINTERNAL_LOGGER;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
@@ -198,7 +198,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <ClCompile>
       <WarningLevel>EnableAllWarnings</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CPPSOCKETS_TCP_SERVER_EXTRA_LOGGING_NEEDED;CPPSOCKETS_TCP_SERVER_USE_CINTERNAL_LOGGER;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
@@ -212,7 +212,7 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CPPSOCKETS_TCP_SERVER_EXTRA_LOGGING_NEEDED;CPPSOCKETS_TCP_SERVER_USE_CINTERNAL_LOGGER;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
@@ -228,7 +228,7 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CPPSOCKETS_TCP_SERVER_EXTRA_LOGGING_NEEDED;CPPSOCKETS_TCP_SERVER_USE_CINTERNAL_LOGGER;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
@@ -244,7 +244,7 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CPPSOCKETS_TCP_SERVER_EXTRA_LOGGING_NEEDED;CPPSOCKETS_TCP_SERVER_USE_CINTERNAL_LOGGER;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
@@ -258,7 +258,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>EnableAllWarnings</WarningLevel>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CPPSOCKETS_TCP_SERVER_EXTRA_LOGGING_NEEDED;CPPSOCKETS_TCP_SERVER_USE_CINTERNAL_LOGGER;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
@@ -272,7 +272,7 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CPPSOCKETS_TCP_SERVER_EXTRA_LOGGING_NEEDED;CPPSOCKETS_TCP_SERVER_USE_CINTERNAL_LOGGER;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
@@ -284,11 +284,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\contrib\cinternal\src\core\cinternal_core_logger.c" />
     <ClCompile Include="..\..\..\src\core\cpputils_sockets_core_tcp_server.cpp" />
     <ClCompile Include="..\..\..\src\core\cpputils_sockets_core_tcp_socket.cpp" />
     <ClCompile Include="..\..\..\src\tests\main_tcp_server_test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\include\cpputils\sockets\export_symbols.h" />
+    <ClInclude Include="..\..\..\include\cpputils\sockets\internal_header.h" />
+    <ClInclude Include="..\..\..\include\cpputils\sockets\socket_data.hpp" />
+    <ClInclude Include="..\..\..\include\cpputils\sockets\tcp_server.hpp" />
+    <ClInclude Include="..\..\..\include\cpputils\sockets\tcp_socket.hpp" />
     <ClInclude Include="..\..\..\src\core\cpputils_sockets_core_tcp_socket_p.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

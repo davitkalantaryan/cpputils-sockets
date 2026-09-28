@@ -6,7 +6,24 @@
 // created by:		Davit Kalantaryan (davit.kalantaryan@desy.de)
 //
 
+
+#include <cpputils/sockets/internal_header.h>
+
+#ifndef WaitForDataOnSocketInline_needed
+#define WaitForDataOnSocketInline_needed
+#endif
+#ifndef MakeSocketNonBlockingInline_needed
+#define MakeSocketNonBlockingInline_needed
+#endif
+#ifndef GetSocketAddressInline_needed
+#define GetSocketAddressInline_needed
+#endif
+#ifndef GetPortNumberFromSocketAddressInline_needed
+#define GetPortNumberFromSocketAddressInline_needed
+#endif
+
 #include "cpputils_sockets_core_tcp_socket_p.hpp"
+#include <cinternal/signals.h>
 #include <cinternal/disable_compiler_warnings.h>
 #include <string.h>
 #include <stdlib.h>
@@ -23,12 +40,13 @@
 #endif
 #include <cinternal/undisable_compiler_warnings.h>
 
+
 namespace cpputils { namespace sockets{
 
 
-tcp_socket::~tcp_socket()
+tcp_socket::~tcp_socket() noexcept
 {
-	Close();
+    Close();
 }
 
 
@@ -37,35 +55,43 @@ tcp_socket::tcp_socket()
 	m_sock_data_p(new tcp_socket_p())
 {
 	m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
-    m_sock_data_p->isBlocking = false;
+    m_sock_data_p->flags.wr_all = CPPUTILS_BISTATE_MAKE_ALL_BITS_FALSE;
     m_sock_data_p->timeoutMs = -1;
 }
 
 
-tcp_socket::tcp_socket(const SysSocket* a_createdSocket)
+tcp_socket::tcp_socket(ptrdiff_t a_createdRawSock)
 	:
 	m_sock_data_p(new tcp_socket_p())
 {
-	m_sock_data_p->sock = a_createdSocket->sock;
+    m_sock_data_p->sock = (socket_t)a_createdRawSock;
+    m_sock_data_p->flags.wr_all = CPPUTILS_BISTATE_MAKE_ALL_BITS_FALSE;
     m_sock_data_p->timeoutMs = -1;
     MakeSocketBlocking();
 }
 
 
-tcp_socket::tcp_socket(tcp_socket&& a_mM) noexcept
+tcp_socket::tcp_socket(const SysSocket* CPPUTILS_ARG_NN a_createdSysSock)
+    :
+    tcp_socket((ptrdiff_t)(a_createdSysSock->sock))
+{
+}
+
+
+tcp_socket::tcp_socket(tcp_socket&& a_mM)
 	:
 	m_sock_data_p(a_mM.m_sock_data_p)
 {
 	a_mM.m_sock_data_p = new tcp_socket_p();
 	a_mM.m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
-    a_mM.m_sock_data_p->isBlocking = false;
+    a_mM.m_sock_data_p->flags.wr_all = CPPUTILS_BISTATE_MAKE_ALL_BITS_FALSE;
     a_mM.m_sock_data_p->timeoutMs = -1;
 }
 
 
 tcp_socket& tcp_socket::operator=(tcp_socket&& a_mM) noexcept
 {
-	tcp_socket_p* pThisData = m_sock_data_p;
+    tcp_socket_p* const pThisData = m_sock_data_p;
 	m_sock_data_p = a_mM.m_sock_data_p;
 	a_mM.m_sock_data_p = pThisData;
 	return *this;
@@ -80,7 +106,7 @@ void tcp_socket::ReplaceWithOtherSocket(tcp_socket* CPPUTILS_ARG_NN a_pMM) noexc
 }
 
 
-static bool SOCKET_INPROGRESS_INLINE(void) {
+static bool SOCKET_INPROGRESS_INLINE(void) noexcept {
 #ifdef _WIN32
 	return (WSAGetLastError() == WSAEWOULDBLOCK);
 #else
@@ -90,10 +116,10 @@ static bool SOCKET_INPROGRESS_INLINE(void) {
 }
 
 
-int tcp_socket::Connect(const char* CPPUTILS_ARG_NN a_svrName, int a_port, int a_connectionTimeoutMs)
+int tcp_socket::ConnectV4(const char* CPPUTILS_ARG_NN a_svrName, int a_port, int a_connectionTimeoutMs, sockaddr_in* a_sockAddr_p) noexcept
 {
 	if (m_sock_data_p->sock != CPPUTILS_SOCKS_CLOSE_SOCK) {
-		closesocketn(m_sock_data_p->sock);
+		CpputilsCloseSocket(m_sock_data_p->sock);
 	}
 
 	m_sock_data_p->sock = ::socket(AF_INET, SOCK_STREAM, 0);
@@ -102,38 +128,47 @@ int tcp_socket::Connect(const char* CPPUTILS_ARG_NN a_svrName, int a_port, int a
 		return -1;
 	}
 
-	unsigned long ha;
 	struct sockaddr_in addr;
 	memset(&addr, 0, sizeof(struct sockaddr_in));
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons((u_short)a_port);
 
-#ifdef _MSC_VER
-#pragma warning (push)
-#pragma warning (disable:4996)
-#endif
-	if ((ha = inet_addr(a_svrName)) == INADDR_NONE) {
-		struct hostent* hostent_ptr = gethostbyname(a_svrName);  // making DNS querry
-		if (!hostent_ptr) {
-			closesocketn(m_sock_data_p->sock);
-			m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
-			return -1;
-		}
-		a_svrName = inet_ntoa(*(struct in_addr*)hostent_ptr->h_addr_list[0]);
-		if ((ha = inet_addr(a_svrName)) == INADDR_NONE) {
-			closesocketn(m_sock_data_p->sock);
-			m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
-			return -1;
-		}
-	}
-#ifdef _MSC_VER
-#pragma warning (pop)
-#endif
+    // new approach of getting sin_addr, based on hostname or ip address
+    // using getaddrinfo instead of gethostbyname & inet_ntoa
+    struct addrinfo hints = {};
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
 
-	memcpy(&addr.sin_addr, &ha, sizeof(ha));
+    struct addrinfo* result = nullptr;
+
+    const int err = getaddrinfo(a_svrName, nullptr, &hints, &result);
+    if (err != 0 || !result) {
+        CpputilsCloseSocket(m_sock_data_p->sock);
+        m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
+        return -1;
+    }
+
+    const sockaddr_in* const resultSin = reinterpret_cast<const sockaddr_in*>(result->ai_addr);
+    addr.sin_addr = resultSin->sin_addr;
+
+    freeaddrinfo(result);
 
 	// let's make socket non blocking
 	MakeSocketNonBlocking();
+
+    if(a_sockAddr_p){
+        memset(a_sockAddr_p, 0, sizeof(struct sockaddr_in));
+        a_sockAddr_p->sin_family = (unsigned short)AF_INET;
+        a_sockAddr_p->sin_port = 0;
+        a_sockAddr_p->sin_addr.s_addr = htonl(INADDR_ANY);
+        const socklen_t addr_len_inner = sizeof(struct sockaddr_in);
+        const int bindRtn = bind(m_sock_data_p->sock, (struct sockaddr*)a_sockAddr_p, addr_len_inner);
+        if (!CHECK_FOR_SOCK_ERROR(bindRtn)) {
+            if(GetSocketAddressInline(m_sock_data_p->sock,a_sockAddr_p)){
+                *a_sockAddr_p = {};
+            }
+        }  //  if (!CHECK_FOR_SOCK_ERROR(bindRtn)) {
+    }  //  if(a_sockAddr_p){
 
 	const socklen_t addr_len = sizeof(addr);
 	int rtn = ::connect(m_sock_data_p->sock, (struct sockaddr*)&addr, addr_len);
@@ -147,22 +182,22 @@ int tcp_socket::Connect(const char* CPPUTILS_ARG_NN a_svrName, int a_port, int a
 		}
 	}  //  if (rtn) {
 
-	closesocketn(m_sock_data_p->sock);
+	CpputilsCloseSocket(m_sock_data_p->sock);
 	m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
 	return -1;  // most probably timeout
 }
 
 
-void tcp_socket::Close()
+void tcp_socket::Close() noexcept
 {
 	if (m_sock_data_p->sock != CPPUTILS_SOCKS_CLOSE_SOCK) {
-		closesocketn(m_sock_data_p->sock);
+		CpputilsCloseSocket(m_sock_data_p->sock);
 		m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
 	}
 }
 
 
-void tcp_socket::MakeSocketBlocking()
+void tcp_socket::MakeSocketBlocking() noexcept
 {
 #ifdef	_WIN32
 	unsigned long on = 0;
@@ -175,20 +210,20 @@ void tcp_socket::MakeSocketBlocking()
 	}
 #endif
     
-    m_sock_data_p->isBlocking = true;
+    m_sock_data_p->flags.wr.isBlocking = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
 }
 
 
-void tcp_socket::MakeSocketNonBlocking()
+void tcp_socket::MakeSocketNonBlocking() noexcept
 {
 	MakeSocketNonBlockingInline(m_sock_data_p->sock);
-    m_sock_data_p->isBlocking = false;
+    m_sock_data_p->flags.wr.isBlocking = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
 }
 
 
-int tcp_socket::receiveAll(void* a_pBuffer, size_t a_nSize)const
+int tcp_socket::receiveAll(void* a_pBuffer, size_t a_nSize)const noexcept
 {
-    if(m_sock_data_p->isBlocking){
+    if(m_sock_data_p->flags.rd.isBlocking_true){
         return (int)recv(m_sock_data_p->sock,(char*)a_pBuffer,(sndrcv_inp_cnt)a_nSize, MSG_WAITALL);
     }
 	
@@ -211,13 +246,13 @@ int tcp_socket::receiveAll(void* a_pBuffer, size_t a_nSize)const
 }
 
 
-int tcp_socket::receiveSngl(void* a_pBuffer, size_t a_nSize)const
+int tcp_socket::receiveSngl(void* a_pBuffer, size_t a_nSize)const noexcept
 {
     return (int)recv(m_sock_data_p->sock,(char*)a_pBuffer,(sndrcv_inp_cnt)a_nSize, 0);
 }
 
 
-int tcp_socket::Send(const void* a_cpBuffer, size_t a_nSize)
+int tcp_socket::send(const void* a_cpBuffer, size_t a_nSize) const noexcept
 {
 #define MAX_NUMBER_OF_ITERS	100000
 	const char* pcBuffer = (const char*)a_cpBuffer;
@@ -232,7 +267,7 @@ int tcp_socket::Send(const void* a_cpBuffer, size_t a_nSize)
 		n = ::send(m_sock_data_p->sock, cp, (sndrcv_inp_cnt)len_to_write, 0);
 		if (CHECK_FOR_SOCK_ERROR(n)) {
 			if (SOCKET_INPROGRESS_INLINE()) {
-				if (i < MAX_NUMBER_OF_ITERS) { SWITCH_SCHEDULING(1); continue; }
+				if (i < MAX_NUMBER_OF_ITERS) { CinternalSleepInterruptableMs(1); continue; }
 				else { return -1; }  // timeout
 			}
 			else { return -1; }  // send error
@@ -248,13 +283,23 @@ int tcp_socket::Send(const void* a_cpBuffer, size_t a_nSize)
 }
 
 
-int tcp_socket::SendSimple(const void* a_cpBuffer, size_t a_nSize)
+int tcp_socket::sendSimple(const void* a_cpBuffer, size_t a_nSize) const noexcept
 {
 	return (int)::send(m_sock_data_p->sock, (const char*)a_cpBuffer, (sndrcv_inp_cnt)a_nSize, 0);
 }
 
 
-int tcp_socket::SetTimeout(int a_nTimeoutMs)
+int tcp_socket::getPort()const noexcept
+{
+    sockaddr_in sockAddr;
+    if(GetSocketAddressInline(m_sock_data_p->sock,&sockAddr)){
+        return -1;
+    }
+    return GetPortNumberFromSocketAddressInline(sockAddr);
+}
+
+
+int tcp_socket::SetTimeout(int a_nTimeoutMs) noexcept
 {
 	char* pInput;
 	int nInputLen;
@@ -288,29 +333,69 @@ int tcp_socket::SetTimeout(int a_nTimeoutMs)
 }
 
 
-int tcp_socket::waitForReadData(int a_timeoutMs)const
+int tcp_socket::waitForReadData(int a_timeoutMs)const noexcept
 {
 	return WaitForDataOnSocketInline(m_sock_data_p->sock, a_timeoutMs, DeskType::read);
 }
 
 
-void tcp_socket::GetSysSocketAndReset(SysSocket* CPPUTILS_ARG_NN a_pSysSocket)
+void tcp_socket::GetSysSocketAndRelease(SysSocket* CPPUTILS_ARG_NN a_pSysSocket) noexcept
 {
     a_pSysSocket->sock = m_sock_data_p->sock;
     m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
 }
 
 
-void tcp_socket::getSysSocket(SysSocket* CPPUTILS_ARG_NN a_pSysSocket)const
+void tcp_socket::getSysSocket(SysSocket* CPPUTILS_ARG_NN a_pSysSocket)const noexcept
 {
     a_pSysSocket->sock = m_sock_data_p->sock;
 }
 
+ptrdiff_t tcp_socket::GetRawSocketAndRelease() noexcept
+{
+    const ptrdiff_t retRawSock = (ptrdiff_t)(m_sock_data_p->sock);
+    m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
+    return retRawSock;
+}
 
-void tcp_socket::Reset()
+
+ptrdiff_t tcp_socket::getRawSock()const noexcept
+{
+    return (ptrdiff_t)(m_sock_data_p->sock);
+}
+
+
+void tcp_socket::Release()noexcept
 {
     m_sock_data_p->sock = CPPUTILS_SOCKS_CLOSE_SOCK;
 }
+
+
+void tcp_socket::ReleaseFromSysSock(const SysSocket* a_createdSysSock) noexcept
+{
+    m_sock_data_p->sock = a_createdSysSock ? (a_createdSysSock->sock) : CPPUTILS_SOCKS_CLOSE_SOCK;
+}
+
+
+void tcp_socket::ReleaseFromRawSock(ptrdiff_t a_createdRawSock) noexcept
+{
+    m_sock_data_p->sock = (a_createdRawSock<0) ? CPPUTILS_SOCKS_CLOSE_SOCK : ((socklen_t)a_createdRawSock);
+}
+
+
+void tcp_socket::ResetFromSysSock(const SysSocket* a_createdSysSock) noexcept
+{
+    Close();
+    ReleaseFromSysSock(a_createdSysSock);
+}
+
+
+void tcp_socket::ResetFromRawSock(ptrdiff_t a_createdRawSock) noexcept
+{
+    Close();
+    ReleaseFromRawSock(a_createdRawSock);
+}
+
 
 /*
  * 
@@ -320,7 +405,7 @@ void tcp_socket::Reset()
  * Above code is multiplatform
  * 
  */
-int tcp_socket::SetKeepAliveTimeouts(int a_idleTimeSec, int a_intervalSec, int a_maxProbes)
+int tcp_socket::SetKeepAliveTimeouts(int a_idleTimeSec, int a_intervalSec, int a_maxProbes) noexcept
 {
 #ifdef _WIN32
     DWORD bytes_returned = 0;
@@ -346,131 +431,70 @@ int tcp_socket::SetKeepAliveTimeouts(int a_idleTimeSec, int a_intervalSec, int a
 }
 
 
-bool tcp_socket::isValid()const
+bool tcp_socket::isValid()const noexcept
 {
     return m_sock_data_p->sock != CPPUTILS_SOCKS_CLOSE_SOCK;
 }
 
 
-bool tcp_socket::isBlocking()const
+bool tcp_socket::isBlocking()const noexcept
 {
-    return m_sock_data_p->isBlocking;
+    return static_cast<bool>(m_sock_data_p->flags.rd.isBlocking_true);
 }
 
 
-int tcp_socket::timeoutMs()const
+int tcp_socket::timeoutMs()const noexcept
 {
     return m_sock_data_p->timeoutMs;
 }
 
 
-int tcp_socket::ReceiveNonBlockingWithTimeout(void* a_pBuffer, size_t a_nSize, int a_timeoutMs)
+/*--------------------------------------------------------------------------------------------------------------*/
+
+CSOCKETS_EXPORT const char* GetIPV4Address(const sockaddr_in& a_addr, char* a_buffer, size_t a_bufferSize) noexcept
 {
-    if(a_timeoutMs<0){
-        return receiveAll(a_pBuffer,a_nSize);
+    if (!a_buffer || (a_bufferSize == 0)) {
+        return nullptr;
     }
-    
-    struct timeval  aTimeout;
-    fd_set rdfds, errfds;
-    const bool bMakeSocketBlocking = m_sock_data_p->isBlocking;
-    time_t currentTime;
-    currentTime = time(&currentTime);
-    const time_t finishEpoch = currentTime + static_cast<time_t>(a_timeoutMs);
-    const int maxsd = static_cast<int>(m_sock_data_p->sock) + 1;
-    int rtn;
-    
-    if(bMakeSocketBlocking){
-        MakeSocketNonBlocking();
+
+    a_buffer[0] = '\0';
+    if (!inet_ntop(AF_INET,&a_addr.sin_addr,a_buffer,a_bufferSize)) {
+        return nullptr;
     }
-    
-    aTimeout.tv_sec = a_timeoutMs / 1000L;
-    aTimeout.tv_usec = (a_timeoutMs % 1000L) * 1000L;
-    FD_ZERO(&rdfds);
-    FD_ZERO(&errfds);
-    FD_SET(m_sock_data_p->sock, &rdfds);
-    FD_SET(m_sock_data_p->sock, &rdfds);
-    rtn = ::select(maxsd, &rdfds, nullptr, &errfds, &aTimeout);
-	switch (rtn) {
-	case 0:	/* time out */
-        if(bMakeSocketBlocking){
-            MakeSocketBlocking();
-        }
-		return 0;
-	case SOCKET_ERROR:
-        if(bMakeSocketBlocking){
-            MakeSocketBlocking();
-        }
-		if (errno == EINTR) {/*interrupted by signal*/return -1; }  // interrupt
-		return -1;  // select error
-	default:
-		break;
-	}  //  switch (rtn){
-    rtn = (int)recv(m_sock_data_p->sock,(char*)a_pBuffer,(sndrcv_inp_cnt)a_nSize,0);
-    if(rtn<1){
-        if(bMakeSocketBlocking){
-            MakeSocketBlocking();
-        }
-        return rtn;
-    }
-    size_t totalRcvCount = (size_t)rtn;
-    size_t nextRcvCount;
-    int timeoutMs;
-    
-    while((totalRcvCount<a_nSize) && (currentTime<finishEpoch)){
-        nextRcvCount = a_nSize - totalRcvCount;
-        timeoutMs = (int)(finishEpoch-currentTime);
-        aTimeout.tv_sec = timeoutMs / 1000L;
-        aTimeout.tv_usec = (timeoutMs % 1000L) * 1000L;
-        FD_ZERO(&rdfds);
-        FD_ZERO(&errfds);
-        FD_SET(m_sock_data_p->sock, &rdfds);
-        FD_SET(m_sock_data_p->sock, &rdfds);
-        rtn = ::select(maxsd, &rdfds, nullptr, &errfds, &aTimeout);
-        switch (rtn) {
-        case 0:	/* time out */
-            if(bMakeSocketBlocking){
-                MakeSocketBlocking();
-            }
-            return 0;
-        case SOCKET_ERROR:
-            if(bMakeSocketBlocking){
-                MakeSocketBlocking();
-            }
-            if (errno == EINTR) {/*interrupted by signal*/return -1; }  // interrupt
-            return -1;  // select error
-        default:
-            break;
-        }  //  switch (rtn){
-        rtn = (int)recv(m_sock_data_p->sock,((char*)a_pBuffer) + totalRcvCount,(sndrcv_inp_cnt)nextRcvCount,0);    
-        if(rtn<1){
-            if(bMakeSocketBlocking){
-                MakeSocketBlocking();
-            }
-            return rtn;
-        }
-        totalRcvCount += ((size_t)rtn);
-        currentTime = time(&currentTime);
-    }  //  while((totalRcvCount<a_nSize) && (currentTime<finishEpoch)){
-    
-    if(bMakeSocketBlocking){
-        MakeSocketBlocking();
-    }
-    return (int)totalRcvCount;
+
+    return a_buffer;
 }
 
 
-/*--------------------------------------------------------------------------------------------------------------*/
-
-CSOCKETS_EXPORT const char* GetIPV4Address(const sockaddr_in* CPPUTILS_ARG_NN a_addr)
+CSOCKETS_EXPORT const char* GetIpV6Address(const sockaddr_in6& a_addr,char* a_buffer,size_t a_bufferSize) noexcept
 {
-#ifdef _MSC_VER
-#pragma warning (push)
-#pragma warning (disable:4996)
-#endif
-	return ::inet_ntoa(a_addr->sin_addr);
-#ifdef _MSC_VER
-#pragma warning (pop)
-#endif
+    if (!a_buffer || (a_bufferSize == 0)) {
+        return nullptr;
+    }
+
+    a_buffer[0] = '\0';
+    if (!inet_ntop(AF_INET6,&a_addr.sin6_addr,a_buffer,a_bufferSize)) {
+        return nullptr;
+    }
+
+    return a_buffer;
+}
+
+
+CSOCKETS_EXPORT const char* GetHostName(const sockaddr& a_addr, size_t a_sockAddrLen, char* a_buffer,size_t a_bufferSize) noexcept
+{
+    if (!a_buffer || (a_bufferSize == 0)) {
+        return nullptr;
+    }
+
+    a_buffer[0] = '\0';
+    const int result = ::getnameinfo(&a_addr,static_cast<socklen_t>(a_sockAddrLen),a_buffer,static_cast<getnminfoarg_t>(a_bufferSize),nullptr,0,NI_NAMEREQD);
+    if (result != 0) {
+        a_buffer[0] = '\0';
+        return nullptr;
+    }
+
+    return a_buffer;
 }
 
 

@@ -20,7 +20,11 @@ int main(int a_argc, char* a_argv[])
         cpcServerHost = a_argv[1];
     }
     
-	if (aSocket.Connect(cpcServerHost, 9030, 1000)) {
+#if 1
+    if (aSocket.ConnectV4(cpcServerHost, 9030, 1000)) {
+#else
+    if (aSocket.ConnectV4(cpcServerHost, 41837, 1000)) {
+#endif
 		fprintf(stderr, "unable to connect\n");
 		return 1;
 	}
@@ -34,7 +38,7 @@ int main(int a_argc, char* a_argv[])
 	}
 	fflush(stdout);
 
-	aSocket.Send("pong",4);
+	aSocket.send("pong",4);
 
 	// aSocket.Close(); // no need for this, because destructor will do this
 

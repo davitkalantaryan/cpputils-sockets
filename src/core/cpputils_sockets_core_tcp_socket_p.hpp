@@ -10,6 +10,7 @@
 
 #include <cpputils/sockets/tcp_socket.hpp>
 #include <cpputils/sockets/socket_data.hpp>
+#include <cinternal/bistateflags.h>
 
 
 namespace cpputils { namespace sockets{
@@ -21,12 +22,33 @@ public:
 	socket_t	sock;
     int         timeoutMs;
     int         reserved01;
-    bool        isBlocking;
-    bool        reserved02[(sizeof(void*) - sizeof(bool))/ sizeof(bool)];
+    CPPUTILS_BISTATE_FLAGS_UN(
+        isBlocking
+    )flags;
 };
 
 
-static inline void MakeSocketNonBlockingInline(socket_t a_sock){
+#ifdef GetSocketAddressInline_needed
+static inline int GetSocketAddressInline(socket_t a_sock, sockaddr_in* CPPUTILS_ARG_NN a_sockAddr_p) noexcept{
+    cpputils_socklen_t sock_name_addr_len = static_cast<cpputils_socklen_t>(sizeof(struct sockaddr_in));
+    const int rtn = ::getsockname(a_sock, (struct sockaddr*)a_sockAddr_p, &sock_name_addr_len);
+    if (CHECK_FOR_SOCK_ERROR(rtn)) {
+        return rtn;
+    }
+    return 0;
+}
+#endif
+
+
+#ifdef GetPortNumberFromSocketAddressInline_needed
+static inline int GetPortNumberFromSocketAddressInline(const sockaddr_in& a_sockAddr) noexcept{
+    return ntohs(a_sockAddr.sin_port);
+}
+#endif
+
+
+#ifdef MakeSocketNonBlockingInline_needed
+static inline void MakeSocketNonBlockingInline(socket_t a_sock) noexcept{
 #ifdef	_WIN32
 	unsigned long on = 1;
 	ioctlsocket(a_sock, FIONBIO, &on);
@@ -38,6 +60,7 @@ static inline void MakeSocketNonBlockingInline(socket_t a_sock){
 	}
 #endif
 }
+#endif
 
 
 enum class DeskType {
@@ -51,8 +74,9 @@ enum class DeskType {
 };
 
 
+#ifdef WaitForDataOnSocketInline_needed
 // 1,2,3 => data, 0 => timeout, -1 => error, socket should be closed
-static inline int WaitForDataOnSocketInline(socket_t a_sock, int a_timeoutMs, const DeskType& a_desc) {
+static inline int WaitForDataOnSocketInline(socket_t a_sock, int a_timeoutMs, const DeskType& a_desc) noexcept {
 	fd_set* pRdFds = nullptr, * pWrFds = nullptr, * pErFds = nullptr;
 	fd_set rdfds, wrfds, errfds;
 	struct timeval  aTimeout;
@@ -140,6 +164,7 @@ static inline int WaitForDataOnSocketInline(socket_t a_sock, int a_timeoutMs, co
 	// if nCount == 0 , we have fatal error, else we have data
 	return nCount ? nCount : (-1);
 }
+#endif  //  #ifdef WaitForDataOnSocketInline_needed
 
 
 }}  //  namespace cpputils { namespace sockets{

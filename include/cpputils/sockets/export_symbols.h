@@ -9,7 +9,8 @@
 #ifndef CSOCKETS_INCLUDE_CSOCKETS_EXPORT_SYMBOLS_H
 #define CSOCKETS_INCLUDE_CSOCKETS_EXPORT_SYMBOLS_H
 
-#include <cinternal/internal_header.h>
+
+#include <cpputils/sockets/internal_header.h>
 
 
 #ifndef CSOCKETS_EXPORT

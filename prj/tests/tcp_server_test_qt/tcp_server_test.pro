@@ -15,7 +15,30 @@ QT -= widgets
 CONFIG -= qt
 CONFIG += console
 
-DEFINES += CPPUTILS_DO_NOT_USE_STD_FUNCTION
+isEmpty(CPPSOCKETS_TCP_SERVER_NOT_USE_CINTERNAL_LOGGER) {
+    CPPSOCKETS_TCP_SERVER_NOT_USE_CINTERNAL_LOGGER = $$(CPPSOCKETS_TCP_SERVER_NOT_USE_CINTERNAL_LOGGER)
+    isEmpty(CPPSOCKETS_TCP_SERVER_NOT_USE_CINTERNAL_LOGGER) {
+        message("-- CPPSOCKETS_TCP_SERVER_NOT_USE_CINTERNAL_LOGGER is not defined")
+        DEFINES += CPPSOCKETS_TCP_SERVER_USE_CINTERNAL_LOGGER
+    } else {
+        message("++ CPPSOCKETS_TCP_SERVER_NOT_USE_CINTERNAL_LOGGER is defined")
+    }
+} else {
+    message("++ CPPSOCKETS_TCP_SERVER_NOT_USE_CINTERNAL_LOGGER is defined")
+}
+
+isEmpty(CPPSOCKETS_TCP_SERVER_EXTRA_LOGGING_NEEDED) {
+    CPPSOCKETS_TCP_SERVER_EXTRA_LOGGING_NEEDED = $$(CPPSOCKETS_TCP_SERVER_EXTRA_LOGGING_NEEDED)
+    isEmpty(CPPSOCKETS_TCP_SERVER_EXTRA_LOGGING_NEEDED) {
+        message("-- CPPSOCKETS_TCP_SERVER_EXTRA_LOGGING_NEEDED is not defined")
+    } else {
+        DEFINES += CPPSOCKETS_TCP_SERVER_EXTRA_LOGGING_NEEDED
+        message("++ CPPSOCKETS_TCP_SERVER_EXTRA_LOGGING_NEEDED is defined")
+    }
+} else {
+    DEFINES += CPPSOCKETS_TCP_SERVER_EXTRA_LOGGING_NEEDED
+    message("++ CPPSOCKETS_TCP_SERVER_EXTRA_LOGGING_NEEDED is defined")
+}
 
 win32{
 	LIBS += -lWs2_32
@@ -24,11 +47,11 @@ win32{
 }
 
 
-SOURCES	+=		\
-        "$${PWD}/../../../src/tests/main_tcp_server_test.cpp"	    \
-	"$${PWD}/../../../src/core/cpputils_sockets_core_tcp_socket.cpp"    \
-	"$${PWD}/../../../src/core/cpputils_sockets_core_tcp_server.cpp"
+SOURCES += "$${cpputilsSocketsRepoRoot}/src/tests/main_tcp_server_test.cpp"
+SOURCES += $$files($${cpputilsSocketsRepoRoot}/src/core/*.cpp,true)
+SOURCES += "$${cinternalRepoRoot}/src/core/cinternal_core_logger.c"
 
+HEADERS += $$files($${cpputilsSocketsRepoRoot}/src/core/*.hpp,true)
 HEADERS += $$files($${cpputilsSocketsRepoRoot}/include/*.h,true)
 HEADERS += $$files($${cpputilsSocketsRepoRoot}/include/*.hpp,true)
 
